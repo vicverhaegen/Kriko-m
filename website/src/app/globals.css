@@ -84,6 +84,28 @@
     border-radius: 3px;
 }
 
+/* Aangepaste Tekstselectie (Branding) */
+::selection {
+    background-color: #650B19;
+    color: #FCEBBE;
+}
+::-moz-selection {
+    background-color: #650B19;
+    color: #FCEBBE;
+}
+
+/* Portaal tekstselectie */
+body.portal-theme ::selection,
+.portaal ::selection {
+    background-color: #162544;
+    color: #FFFFFF;
+}
+body.portal-theme ::-moz-selection,
+.portaal ::-moz-selection {
+    background-color: #162544;
+    color: #FFFFFF;
+}
+
 html {
     font-size: 16px;
     background: linear-gradient(to bottom, #650B19 50%, #3a0710 50%);
