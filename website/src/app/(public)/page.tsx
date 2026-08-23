@@ -74,7 +74,7 @@ export default async function HomePage() {
       </section>
 
       {/* 2. Welkom & Foto */}
-      <section className="section home-welcome-section container" id="welkom">
+      <section className="home-section home-welcome-section container" id="welkom">
         <div className="welcome-grid" style={{ alignItems: 'stretch' }}>
           
           {/* Linker kolom: Welkomsttekst */}
@@ -177,8 +177,8 @@ export default async function HomePage() {
       <hr className="section-divider" />
 
       {/* 3. Onze Takken */}
-      <section className="vic-takken-section">
-        <div className="page-header" style={{ padding: '36px 40px 28px', textAlign: 'center' }}>
+      <section className="home-section vic-takken-section">
+        <div style={{ textAlign: 'center', marginBottom: 32 }}>
           <EditableText
             blockKey="home.takken.section_title"
             page="home"
@@ -218,7 +218,7 @@ export default async function HomePage() {
       <hr className="section-divider" />
 
       {/* 4. Aankomende Activiteiten */}
-      <section className="section container" style={{ marginBottom: 40 }}>
+      <section className="home-section home-events-wrapper container">
         <div className="home-events-section">
           <div className="home-events-header">
             <h3 className="home-events-title" style={{ display: 'flex', alignItems: 'center', gap: 8 }}>

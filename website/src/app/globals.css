@@ -665,9 +665,10 @@ html, body {
    ========================================================================== */
 
 .vic-takken-section {
-    padding: 0 24px 72px;
+    padding-left: 24px;
+    padding-right: 24px;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1240px;
     margin: 0 auto;
     box-sizing: border-box;
 }
@@ -1967,9 +1968,6 @@ body.portal-theme .tak-hero.primair {
         gap: 16px;
     }
 
-    .vic-takken-section {
-        padding: 16px 20px 24px;
-    }
     .home-grid, .checkout-layout, .register-layout, .tak-layout {
         grid-template-columns: 1fr;
         gap: 30px;
@@ -1980,7 +1978,7 @@ body.portal-theme .tak-hero.primair {
     .hero-title { font-size: 3.6rem; }
     .hero-sub   { font-size: 1.1rem; letter-spacing: 0.12em; }
 
-    .vic-takken-section { padding: 60px 16px; }
+    .vic-takken-section { padding-left: 14px; padding-right: 14px; }
     .vic-takken-grid    { gap: 14px; }
 
     .form-row {
@@ -2181,26 +2179,27 @@ body.portal-theme .tak-hero.primair {
 
 /* Dunne accentlijn als scheiding tussen secties */
 .section-divider {
-    width: 72%;
+    width: min(85%, 1100px);
     height: 1px;
     background-color: var(--color-primary);
-    opacity: 0.2;
+    opacity: 0.15;
     margin: 0 auto;
     border: none;
+    display: block;
 }
 
 /* ==========================================================================
    12. Layout Helper Utilities & Responsive Structures
    ========================================================================== */
 
-/* Welcome block responsive grid on homepage */
-#welkom {
-    scroll-margin-top: 80px;
+/* Standard Homepage Section Rhythm (Desktop: 64px, Tablet: 48px, Mobile: 40px) */
+.home-section {
+    padding-top: 64px !important;
+    padding-bottom: 64px !important;
 }
 
-.home-welcome-section {
-    padding-top: 72px;
-    padding-bottom: 72px;
+#welkom {
+    scroll-margin-top: 80px;
 }
 
 .welcome-grid {
@@ -2208,18 +2207,18 @@ body.portal-theme .tak-hero.primair {
     grid-template-columns: 1fr 1fr;
     gap: 40px;
     align-items: center;
-    margin-bottom: 50px;
+    margin-bottom: 0;
 }
 
 @media (max-width: 992px) {
-    .home-welcome-section {
-        padding-top: 56px !important;
+    .home-section {
+        padding-top: 48px !important;
         padding-bottom: 48px !important;
     }
     .welcome-grid {
         grid-template-columns: 1fr;
-        gap: 30px;
-        margin-bottom: 36px;
+        gap: 28px;
+        margin-bottom: 0;
     }
     .welcome-grid div[style*="rotate"] {
         transform: none !important;
@@ -2229,8 +2228,8 @@ body.portal-theme .tak-hero.primair {
 }
 
 @media (max-width: 600px) {
-    .home-welcome-section {
-        padding-top: 48px !important;
+    .home-section {
+        padding-top: 40px !important;
         padding-bottom: 40px !important;
     }
 }
@@ -6116,7 +6115,7 @@ body.portal-theme .portaal-nav {
     box-shadow: var(--shadow-md);
     border: 1px solid var(--color-border);
     padding: 36px 36px;
-    margin-bottom: 40px;
+    margin-bottom: 0;
 }
 
 @media (min-width: 1240px) {
