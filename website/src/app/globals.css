@@ -1866,6 +1866,11 @@ body.portal-theme .tak-hero.primair {
    ========================================================================== */
 
 @media (max-width: 992px) {
+    .site-header {
+        position: relative !important;
+        top: auto !important;
+    }
+
     h1 { font-size: 2.25rem; }
     h2 { font-size: 1.85rem; }
 
