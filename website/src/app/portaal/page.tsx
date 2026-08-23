@@ -86,14 +86,15 @@ function PortaalContent() {
   }, [searchParams])
 
   useEffect(() => {
-    function handleClickOutside(e: MouseEvent) {
+    if (!roleDropdownOpen) return
+    function handleClickOutside(e: MouseEvent | TouchEvent) {
       if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setRoleDropdownOpen(false)
       }
     }
-    document.addEventListener('mousedown', handleClickOutside)
-    return () => document.removeEventListener('mousedown', handleClickOutside)
-  }, [])
+    document.addEventListener('click', handleClickOutside)
+    return () => document.removeEventListener('click', handleClickOutside)
+  }, [roleDropdownOpen])
 
   async function handleLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -149,7 +150,7 @@ function PortaalContent() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundImage: `url(${loginBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center top', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', gap: 24, fontFamily: 'var(--font-body, Outfit, sans-serif)', position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(22, 37, 68, 0.45) 0%, rgba(36, 59, 107, 0.55) 100%)', backdropFilter: 'blur(2px)' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(22, 37, 68, 0.45) 0%, rgba(36, 59, 107, 0.55) 100%)', backdropFilter: 'blur(2px)', pointerEvents: 'none' }} />
 
       {/* Logo */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
