@@ -104,6 +104,94 @@ export default function InschrijvenClient({ email, year: _year }: Props) {
 
       {activeTab === 'nieuw' ? (
         <>
+          {/* Welkom & Probeerperiode Info Box */}
+          <div
+            style={{
+              backgroundColor: '#fff',
+              border: '1.5px solid var(--color-border)',
+              borderRadius: 'var(--border-radius-lg)',
+              padding: '24px 28px',
+              boxShadow: 'var(--shadow-sm)',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 16,
+              background: 'linear-gradient(135deg, #FFFFFF 0%, #FAF8F5 100%)',
+            }}
+          >
+            <div style={{ display: 'flex', alignItems: 'flex-start', gap: 16, flexWrap: 'wrap' }}>
+              <div
+                style={{
+                  width: 46,
+                  height: 46,
+                  borderRadius: 12,
+                  backgroundColor: 'rgba(101, 11, 25, 0.08)',
+                  color: 'var(--color-primary)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '1.3rem',
+                  flexShrink: 0,
+                }}
+              >
+                <i className="fa-solid fa-compass"></i>
+              </div>
+              <div style={{ flex: 1, minWidth: 260 }}>
+                <EditableText
+                  blockKey="inschrijven.welkom.title"
+                  page="inschrijven"
+                  field="title"
+                  defaultValue="Fijn dat je lid wilt worden van Scouts Kriko-M!"
+                  as="h2"
+                  style={{ margin: 0, fontSize: '1.35rem', color: 'var(--color-primary-dark)', fontWeight: 800 }}
+                />
+                <EditableText
+                  blockKey="inschrijven.welkom.proberen"
+                  page="inschrijven"
+                  field="content"
+                  defaultValue="Iedereen is van harte welkom! Twijfel je nog of wil je eerst eens komen proeven van het scouten? Nieuwe leden mogen altijd eerst 3 keer gratis komen proberen tijdens de gewone zondagactiviteiten vooraleer je definitief inschrijft."
+                  as="p"
+                  multiline
+                  style={{ margin: '8px 0 0 0', fontSize: '0.98rem', color: 'var(--color-text-dark)', lineHeight: 1.6 }}
+                />
+              </div>
+            </div>
+
+            <div
+              style={{
+                backgroundColor: 'rgba(101, 11, 25, 0.04)',
+                borderRadius: 'var(--border-radius-md)',
+                padding: '14px 18px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                flexWrap: 'wrap',
+                gap: 14,
+                borderLeft: '4px solid var(--color-primary)',
+              }}
+            >
+              <div style={{ flex: 1, minWidth: 260 }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--color-primary-dark)', display: 'block' }}>
+                  <i className="fa-solid fa-list-check" style={{ marginRight: 8, color: 'var(--color-primary)' }}></i>
+                  <EditableText
+                    blockKey="inschrijven.welkom.stappen_title"
+                    page="inschrijven"
+                    defaultValue="Hieronder vind je het stappenplan om je in te schrijven:"
+                  />
+                </span>
+                <span style={{ fontSize: '0.88rem', color: 'var(--color-text-muted)', marginTop: 3, display: 'block' }}>
+                  <EditableText
+                    blockKey="inschrijven.welkom.hulp"
+                    page="inschrijven"
+                    defaultValue="Heb je vragen of hulp nodig? Stuur gerust een bericht naar onze groepsleiding."
+                  />
+                </span>
+              </div>
+              <CopyButton text={email} className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.86rem', whiteSpace: 'nowrap' }}>
+                <i className="fas fa-envelope" style={{ marginRight: 6 }}></i> {email}
+              </CopyButton>
+            </div>
+          </div>
+
           {/* STAP 1: Inschrijvingsformulier (Openklappen) */}
           <div
             className="inschrijven-step-box"
@@ -517,42 +605,6 @@ export default function InschrijvenClient({ email, year: _year }: Props) {
           </div>
         </div>
       )}
-
-      {/* Vragen Card */}
-      <div
-        style={{
-          backgroundColor: 'rgba(101, 11, 25, 0.04)',
-          borderLeft: '4px solid var(--color-primary)',
-          borderRadius: 'var(--border-radius-md)',
-          padding: '18px 24px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 12,
-        }}
-      >
-        <div>
-          <EditableText
-            blockKey="inschrijven.vragen.title"
-            page="inschrijven"
-            field="title"
-            defaultValue="Vragen over de inschrijving?"
-            as="h4"
-            style={{ margin: 0, fontSize: '1.05rem', color: 'var(--color-primary-dark)', fontWeight: 800 }}
-          />
-          <EditableText
-            blockKey="inschrijven.vragen.desc"
-            page="inschrijven"
-            defaultValue="De groepsleiding en inschrijvingsverantwoordelijke helpen je graag verder."
-            as="p"
-            style={{ margin: '2px 0 0 0', fontSize: '0.92rem', color: 'var(--color-text-dark)' }}
-          />
-        </div>
-        <CopyButton text={email} className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.88rem' }}>
-          <i className="fas fa-envelope" style={{ marginRight: 6 }}></i> {email}
-        </CopyButton>
-      </div>
 
     </div>
   )

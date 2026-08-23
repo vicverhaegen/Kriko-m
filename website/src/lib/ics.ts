@@ -89,16 +89,20 @@ export function parseEventDates(event: IcsEvent) {
   }
 }
 
-// Start een VCALENDAR met de juiste headers en tijdzone.
-export function icsHeader(calName: string): string[] {
+export function icsHeader(calName: string, calDesc = 'Activiteiten en evenementen van Scouts Kriko-M'): string[] {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
     'PRODID:-//Scouts Kriko-M//Kalender//NL',
     'CALSCALE:GREGORIAN',
     'METHOD:PUBLISH',
+    'NAME:' + escapeIcsText(calName),
     'X-WR-CALNAME:' + escapeIcsText(calName),
+    'DESCRIPTION:' + escapeIcsText(calDesc),
+    'X-WR-CALDESC:' + escapeIcsText(calDesc),
     'X-WR-TIMEZONE:' + CAL_TZ,
+    'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
+    'X-PUBLISHED-TTL:PT1H',
     ...VTIMEZONE,
   ]
 }

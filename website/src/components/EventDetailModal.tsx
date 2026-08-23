@@ -404,25 +404,25 @@ export default function UpcomingEvent({
                 </span>
               </div>
             )}
-            <h3 className="event-card-v2-title" style={{ fontSize: featured ? '1.55rem' : '1.4rem', fontWeight: 900, margin: 0, color: 'var(--color-primary-dark, #40050E)' }}>{event.title}</h3>
+            <h3 className="event-card-v2-title" style={{ fontSize: featured ? '1.24rem' : '1.18rem', fontWeight: 900, margin: 0, color: 'var(--color-primary-dark, #40050E)', lineHeight: 1.25 }}>{event.title}</h3>
           </div>
           {!showFooter && (
-            <div className="event-card-compact-action" style={{ alignSelf: 'center', marginLeft: 'auto', flexShrink: 0, paddingLeft: 12 }}>
-              <i className="fa-solid fa-chevron-right" style={{ fontSize: '1.1rem' }}></i>
+            <div className="event-card-compact-action" style={{ alignSelf: 'center', marginLeft: 'auto', flexShrink: 0, paddingLeft: 8 }}>
+              <i className="fa-solid fa-chevron-right" style={{ fontSize: '0.95rem' }}></i>
             </div>
           )}
         </div>
 
         {((featured && event.time) || event.location) && (
-          <div className="event-card-v2-meta" style={{ marginTop: 4, marginBottom: 8, fontSize: '.84rem', color: '#777', fontWeight: 600 }}>
+          <div className="event-card-v2-meta" style={{ marginTop: 2, marginBottom: 6, fontSize: '.76rem', color: '#777', fontWeight: 600, display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
             {featured && event.time && (
-              <span className="event-card-v2-meta-item">
-                <i className="fa-regular fa-clock"></i> {event.time}
+              <span className="event-card-v2-meta-item" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <i className="fa-regular fa-clock" style={{ fontSize: '.72rem', color: '#999', marginRight: 4 }}></i> {event.time}
               </span>
             )}
             {event.location && (
-              <span className="event-card-v2-meta-item">
-                <i className="fa-solid fa-location-dot" style={{ fontSize: '.78rem', color: '#999' }}></i> {event.location}
+              <span className="event-card-v2-meta-item" style={{ display: 'inline-flex', alignItems: 'center' }}>
+                <i className="fa-solid fa-location-dot" style={{ fontSize: '.72rem', color: '#999', marginRight: 4 }}></i> {event.location}
               </span>
             )}
           </div>
@@ -432,6 +432,10 @@ export default function UpcomingEvent({
           <p
             className="event-card-v2-desc"
             style={{
+              fontSize: '0.9rem',
+              lineHeight: 1.5,
+              color: '#555',
+              marginTop: 2,
               marginBottom: showFooter ? undefined : 0,
               WebkitLineClamp: maxDescLines ?? ((showBanner && event.banner_image) ? 3 : 7),
             }}

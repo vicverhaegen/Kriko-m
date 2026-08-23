@@ -2889,11 +2889,13 @@ body.portal-theme .tak-hero.primair {
     position: fixed;
     inset: 0;
     background: rgba(58, 7, 16, 0.55);
+    backdrop-filter: blur(6px);
+    -webkit-backdrop-filter: blur(6px);
     display: flex;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    z-index: 1000;
+    z-index: 5000;
     animation: cal-modal-fade 0.15s ease;
 }
 @keyframes cal-modal-fade { from { opacity: 0; } to { opacity: 1; } }
@@ -6348,7 +6350,7 @@ body.portal-theme .portaal-nav {
 
 /* Content Body */
 .event-card-v2-content {
-    padding: 20px 22px 22px;
+    padding: 14px 16px;
     display: flex;
     flex-direction: column;
     flex-grow: 1;
@@ -6356,47 +6358,47 @@ body.portal-theme .portaal-nav {
 
 .event-card-v2-top {
     display: flex;
-    align-items: flex-start;
-    gap: 16px;
-    margin-bottom: 14px;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 6px;
 }
 
 .event-card-v2-datebox {
     flex-shrink: 0;
-    width: 58px;
-    height: 64px;
+    width: 46px;
+    height: 50px;
     background: linear-gradient(145deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
     color: #ffffff;
-    border-radius: 14px;
+    border-radius: 11px;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 4px 12px rgba(101, 11, 25, 0.2);
+    box-shadow: 0 3px 10px rgba(101, 11, 25, 0.2);
 }
 
 .event-card-v2--nomeeting .event-card-v2-datebox {
     background: linear-gradient(145deg, #757575 0%, #484848 100%);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
 }
 
 .event-card-v2--featured .event-card-v2-datebox {
     background: linear-gradient(145deg, #D4A348 0%, #B88225 100%);
-    box-shadow: 0 4px 12px rgba(184, 130, 37, 0.35);
+    box-shadow: 0 3px 10px rgba(184, 130, 37, 0.35);
 }
 
 .event-card-v2-day {
     font-family: var(--font-outfit), sans-serif;
-    font-size: 1.6rem;
+    font-size: 1.28rem;
     font-weight: 800;
     line-height: 1;
 }
 
 .event-card-v2-month {
-    font-size: 0.7rem;
+    font-size: 0.64rem;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 1px;
+    letter-spacing: 0.5px;
     opacity: 0.9;
 }
 
@@ -6412,12 +6414,12 @@ body.portal-theme .portaal-nav {
     align-items: flex-start;
     justify-content: space-between;
     gap: 8px;
-    margin-bottom: 8px;
+    margin-bottom: 4px;
     width: 100%;
 }
 
 .event-card-v2-weekday {
-    font-size: 0.78rem;
+    font-size: 0.76rem;
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.05em;
@@ -6428,11 +6430,11 @@ body.portal-theme .portaal-nav {
 
 .event-card-v2-title {
     font-family: var(--font-nunito), Arial, sans-serif;
-    font-size: 1.25rem;
+    font-size: 1.2rem;
     font-weight: 800;
     color: var(--color-primary-dark);
-    margin: 2px 0 0;
-    line-height: 1.25;
+    margin: 0;
+    line-height: 1.22;
 }
 
 /* Meta */
@@ -7073,8 +7075,10 @@ body.portal-theme .portaal-nav {
 }
 
 .cal-sidebar-events .event-card-v2-meta {
-    flex-direction: column;
-    gap: 6px;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 10px;
 }
 
 .cal-grid-sub-actions {
@@ -7776,7 +7780,6 @@ body.portal-theme .portaal-nav {
         max-width: 100% !important;
         box-sizing: border-box !important;
     }
-    .event-card-v2,
     .event-card-compact {
         width: 100% !important;
         max-width: 100% !important;
@@ -7785,6 +7788,17 @@ body.portal-theme .portaal-nav {
         overflow: hidden !important;
         padding: 10px 12px !important;
         gap: 10px !important;
+    }
+    .event-card-v2 {
+        width: 100% !important;
+        max-width: 100% !important;
+        box-sizing: border-box !important;
+        border-radius: 14px !important;
+        overflow: hidden !important;
+        padding: 0 !important;
+    }
+    .event-card-v2-content {
+        padding: 12px 14px !important;
     }
     .event-card-compact-header {
         flex-wrap: wrap !important;

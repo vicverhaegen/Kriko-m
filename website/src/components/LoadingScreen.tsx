@@ -29,7 +29,7 @@ export default function LoadingScreen() {
 
   return (
     <>
-      <div ref={ref} id="loading-screen" aria-hidden="true">
+      <div ref={ref} id="loading-screen" aria-hidden="true" suppressHydrationWarning>
         {/* Inline script to prevent flash if already seen in current session */}
         <script
           dangerouslySetInnerHTML={{
