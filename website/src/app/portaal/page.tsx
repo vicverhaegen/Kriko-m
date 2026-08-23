@@ -150,7 +150,7 @@ function PortaalContent() {
 
   return (
     <div style={{ minHeight: '100vh', backgroundImage: `url(${loginBgUrl})`, backgroundSize: 'cover', backgroundPosition: 'center top', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '40px 20px', gap: 24, fontFamily: 'var(--font-body, Outfit, sans-serif)', position: 'relative' }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(22, 37, 68, 0.45) 0%, rgba(36, 59, 107, 0.55) 100%)', backdropFilter: 'blur(2px)', pointerEvents: 'none' }} />
+      <div style={{ position: 'absolute', inset: 0, background: 'linear-gradient(135deg, rgba(22, 37, 68, 0.65) 0%, rgba(36, 59, 107, 0.75) 100%)', pointerEvents: 'none' }} />
 
       {/* Logo */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
@@ -160,8 +160,8 @@ function PortaalContent() {
         </div>
       </div>
 
-      {/* Card */}
-      <div style={{ position: 'relative', zIndex: 1, width: '100%', maxWidth: 440, background: '#fff', borderRadius: 20, boxShadow: '0 24px 60px rgba(0,0,0,0.35)', overflow: 'hidden', borderTop: '5px solid #243B6B' }}>
+      {/* Card - overflow must remain visible for iOS WebKit touch responders */}
+      <div style={{ position: 'relative', zIndex: 2, width: '100%', maxWidth: 440, background: '#fff', borderRadius: 20, boxShadow: '0 24px 60px rgba(0,0,0,0.35)', borderTop: '5px solid #243B6B' }}>
         <div style={{ padding: '36px 36px 38px' }}>
           <div style={{ fontFamily: 'var(--font-heading, Nunito, sans-serif)', fontSize: '1.4rem', fontWeight: 900, color: '#162544', marginBottom: 22, textAlign: 'center' }}>Inloggen op het Portaal</div>
 
@@ -282,7 +282,17 @@ function PortaalContent() {
                   autoCapitalize="none"
                   autoCorrect="off"
                   spellCheck="false"
-                  style={{ paddingRight: 44 }}
+                  style={{
+                    fontSize: '16px',
+                    WebkitUserSelect: 'text',
+                    userSelect: 'text',
+                    WebkitTouchCallout: 'default',
+                    touchAction: 'manipulation',
+                    cursor: 'text',
+                    paddingRight: 44,
+                    backgroundColor: '#FFFFFF',
+                    color: '#162544',
+                  }}
                 />
                 <button
                   type="button"
