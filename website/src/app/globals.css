@@ -148,7 +148,8 @@ html, body {
 .container {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 0 24px;
+    padding-left: 24px;
+    padding-right: 24px;
     width: 100%;
 }
 
@@ -7602,7 +7603,8 @@ body.portal-theme .portaal-nav {
 
 @media (max-width: 640px) {
     .container {
-        padding: 0 14px !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
     }
     /* Kriko Echo: 1-column layout so PDF titles & dates are fully visible */
     .echo-grid {
