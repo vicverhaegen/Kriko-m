@@ -89,7 +89,11 @@ export function parseEventDates(event: IcsEvent) {
   }
 }
 
-export function icsHeader(calName: string, calDesc = 'Activiteiten en evenementen van Scouts Kriko-M'): string[] {
+export function icsHeader(
+  calName: string,
+  calDesc = 'Activiteiten en evenementen van Scouts Kriko-M',
+  color = '#650B19'
+): string[] {
   return [
     'BEGIN:VCALENDAR',
     'VERSION:2.0',
@@ -100,6 +104,9 @@ export function icsHeader(calName: string, calDesc = 'Activiteiten en evenemente
     'X-WR-CALNAME:' + escapeIcsText(calName),
     'DESCRIPTION:' + escapeIcsText(calDesc),
     'X-WR-CALDESC:' + escapeIcsText(calDesc),
+    'COLOR:' + color,
+    'X-APPLE-CALENDAR-COLOR:' + color,
+    'X-OUTLOOK-COLOR:' + color,
     'X-WR-TIMEZONE:' + CAL_TZ,
     'REFRESH-INTERVAL;VALUE=DURATION:PT1H',
     'X-PUBLISHED-TTL:PT1H',

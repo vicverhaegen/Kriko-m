@@ -21,12 +21,12 @@ export async function GET(
 
     const events = (await getAllCalendarEvents()) as CalendarEvent[]
 
-    const lines = icsHeader('Scouts Kriko-M — Leiding')
+    const lines = icsHeader('Scouts Kriko-M — Leiding', 'Volledige leidingkalender en takactiviteiten van Scouts Kriko-M', '#162544')
     const nowStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
     for (const event of events) {
-      const tags = (event.audience ?? []).map(a => AUDIENCE_NAMEN[a] ?? a)
-      const prefix = tags.length ? `[${tags.join(', ')}] ` : ''
+      const tags = (event.audience ?? []).map(a => (a === 'groep' ? 'Kriko-M' : AUDIENCE_NAMEN[a] ?? a))
+      const prefix = tags.length ? `${tags.join(', ')} | ` : 'Kriko-M | '
       lines.push(...buildEventVevent(event as IcsEvent, nowStr, prefix))
     }
 
