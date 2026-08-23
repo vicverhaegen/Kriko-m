@@ -86,13 +86,15 @@
 
 html {
     font-size: 16px;
-    background-color: var(--color-bg-linen);
+    background: linear-gradient(to bottom, #650B19 50%, #3a0710 50%);
+    background-repeat: no-repeat;
     color: var(--color-text-dark);
 }
 
 body {
     font-family: var(--font-outfit), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     line-height: 1.6;
+    background-color: var(--color-bg-linen);
     overflow-x: clip; /* clip voorkomt horizontaal scrollen ZONDER position:sticky van de navigatie te breken */
     display: flex;
     flex-direction: column;
