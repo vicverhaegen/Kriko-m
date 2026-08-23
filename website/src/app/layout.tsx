@@ -44,6 +44,30 @@ export const metadata: Metadata = {
   },
 };
 
+const jsonLd = {
+  "@context": "https://schema.org",
+  "@type": "SportsClub",
+  "name": "Scouts Kriko-M vzw",
+  "alternateName": "Kriko-M",
+  "url": "https://www.kriko-m.be",
+  "logo": "https://www.kriko-m.be/images/logo-finaal.png",
+  "image": "https://www.kriko-m.be/images/logo-finaal.png",
+  "description": "Scouts Kriko-M uit Sint-Niklaas — jeugdbeweging voor kapoenen, welpen, jonggivers en givers.",
+  "email": "groepsleiding@kriko-m.be",
+  "taxID": "BE0409.040.288",
+  "address": {
+    "@type": "PostalAddress",
+    "streetAddress": "Industriepark-Noord 33",
+    "addressLocality": "Sint-Niklaas",
+    "postalCode": "9100",
+    "addressCountry": "BE"
+  },
+  "sameAs": [
+    "https://www.facebook.com/ScoutsKrikoM/",
+    "https://www.instagram.com/scouts_kriko_m/"
+  ]
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -53,6 +77,10 @@ export default function RootLayout({
     <html lang="nl" className={`${outfit.variable} ${nunito.variable} ${rubikDirt.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/png" href="/images/logo-finaal.png" />
+        <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}
+        />
       </head>
       <body suppressHydrationWarning>
         <ThemeSynchronizer />

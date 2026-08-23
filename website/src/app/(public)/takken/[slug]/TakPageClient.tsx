@@ -192,7 +192,7 @@ export default function TakPageClient({
           <div style={{ display: 'flex', flexDirection: 'column', gap: 40 }}>
 
             {/* 1. Beschrijving Block */}
-            <div style={{ backgroundColor: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', boxShadow: 'var(--shadow-md)', padding: 40, border: '1px solid var(--color-border)' }}>
+            <div className="tak-card-block">
               <EditableText
                 blockKey={`takken.${slug}.description.title`}
                 page="takken"
@@ -216,7 +216,7 @@ export default function TakPageClient({
 
             {/* 2. Traditie & Belofte Block */}
             {traditie && (
-              <div style={{ backgroundColor: 'var(--color-bg-white)', borderRadius: 'var(--border-radius-lg)', boxShadow: 'var(--shadow-md)', padding: 40, border: '1px solid var(--color-border)' }}>
+              <div className="tak-card-block">
                 <h3 style={{ fontSize: '1.6rem', marginBottom: 14, color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 10 }}>
                   <i className="fa-solid fa-scroll" style={{ color: 'var(--color-secondary)' }}></i>
                   <EditableText
@@ -358,16 +358,7 @@ export default function TakPageClient({
                   leadersToDisplay.map((leader: Leader, idx: number) => (
                     <div
                       key={leader.name + idx}
-                      style={{
-                        display: 'flex',
-                        justifyContent: 'space-between',
-                        alignItems: 'center',
-                        padding: '16px 20px',
-                        backgroundColor: 'var(--color-bg-linen)',
-                        borderRadius: 'var(--border-radius-md)',
-                        border: '1px solid var(--color-border)',
-                        gap: 16,
-                      }}
+                      className="tak-leader-row"
                     >
                       <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                         <h4 style={{ fontSize: '1.15rem', color: 'var(--color-primary-dark)', margin: 0, fontWeight: 700, lineHeight: 1.3 }}>
@@ -383,6 +374,7 @@ export default function TakPageClient({
                       {leader.phone ? (
                         <a
                           href={`tel:${leader.phone.replace(/\s+/g, '')}`}
+                          className="tak-leader-phone-btn"
                           style={{
                             display: 'inline-flex',
                             alignItems: 'center',
