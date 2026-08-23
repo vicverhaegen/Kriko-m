@@ -74,7 +74,7 @@ export default async function HomePage() {
       </section>
 
       {/* 2. Welkom & Foto */}
-      <section className="section container" id="welkom">
+      <section className="section home-welcome-section container" id="welkom">
         <div className="welcome-grid" style={{ alignItems: 'stretch' }}>
           
           {/* Linker kolom: Welkomsttekst */}

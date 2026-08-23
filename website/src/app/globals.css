@@ -2191,6 +2191,15 @@ body.portal-theme .tak-hero.primair {
    ========================================================================== */
 
 /* Welcome block responsive grid on homepage */
+#welkom {
+    scroll-margin-top: 80px;
+}
+
+.home-welcome-section {
+    padding-top: 72px;
+    padding-bottom: 72px;
+}
+
 .welcome-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
@@ -2200,14 +2209,26 @@ body.portal-theme .tak-hero.primair {
 }
 
 @media (max-width: 992px) {
+    .home-welcome-section {
+        padding-top: 56px !important;
+        padding-bottom: 48px !important;
+    }
     .welcome-grid {
         grid-template-columns: 1fr;
         gap: 30px;
+        margin-bottom: 36px;
     }
     .welcome-grid div[style*="rotate"] {
         transform: none !important;
         margin: 20px auto 0;
         max-width: 500px;
+    }
+}
+
+@media (max-width: 600px) {
+    .home-welcome-section {
+        padding-top: 48px !important;
+        padding-bottom: 40px !important;
     }
 }
 
