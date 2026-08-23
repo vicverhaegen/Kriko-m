@@ -45,7 +45,7 @@ export default function SubscribeCalendarButton({
 
   const feedUrl = `${origin}${feedPath}`
   const webcalUrl = feedUrl.replace(/^https?:/, 'webcal:')
-  const googleUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(feedUrl)}`
+  const googleUrl = `https://calendar.google.com/calendar/render?cid=${encodeURIComponent(webcalUrl)}`
   const outlookUrl = `https://outlook.live.com/calendar/0/action/compose?rru=addsubscription&url=${encodeURIComponent(feedUrl)}&name=${encodeURIComponent(calendarName)}`
   const downloadUrl = `${feedUrl}${feedPath.includes('?') ? '&' : '?'}download=1`
 
