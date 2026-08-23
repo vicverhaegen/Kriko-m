@@ -1,8 +1,19 @@
 'use client'
-import { useEffect, useRef } from 'react'
+import { useEffect, useLayoutEffect, useRef } from 'react'
 
 export default function LoadingScreen() {
   const ref = useRef<HTMLDivElement>(null)
+
+  // Synchronously hide immediately if already seen in current session
+  useLayoutEffect(() => {
+    const el = ref.current
+    if (!el) return
+    try {
+      if (sessionStorage.getItem('kriko_seen')) {
+        el.style.display = 'none'
+      }
+    } catch {}
+  }, [])
 
   useEffect(() => {
     const el = ref.current
@@ -28,18 +39,10 @@ export default function LoadingScreen() {
   }, [])
 
   return (
-    <>
-      <div ref={ref} id="loading-screen" aria-hidden="true" suppressHydrationWarning>
-        {/* Inline script to prevent flash if already seen in current session */}
-        <script
-          dangerouslySetInnerHTML={{
-            __html: `try{if(sessionStorage.getItem('kriko_seen')){var el=document.getElementById('loading-screen');if(el)el.style.display='none';}}catch(e){}`,
-          }}
-        />
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src="/images/logo-finaal.png" alt="Kriko-M laden…" />
-        <div className="loading-bar-wrap"><div className="loading-bar"></div></div>
-      </div>
-    </>
+    <div ref={ref} id="loading-screen" aria-hidden="true" suppressHydrationWarning>
+      {/* eslint-disable-next-line @next/next/no-img-element */}
+      <img src="/images/logo-finaal.png" alt="Kriko-M laden…" />
+      <div className="loading-bar-wrap"><div className="loading-bar"></div></div>
+    </div>
   )
 }

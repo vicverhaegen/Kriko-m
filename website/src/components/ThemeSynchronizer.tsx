@@ -8,26 +8,30 @@ export default function ThemeSynchronizer() {
 
   useLayoutEffect(() => {
     const isPortaal = pathname === '/portaal' || pathname.startsWith('/portaal/')
+    const themeColor = isPortaal ? '#162544' : '#650B19'
 
-    let metaThemeColor = document.querySelector('meta[name="theme-color"]')
-    if (!metaThemeColor) {
-      metaThemeColor = document.createElement('meta')
+    const metaThemeColors = document.querySelectorAll('meta[name="theme-color"]')
+    if (metaThemeColors.length > 0) {
+      metaThemeColors.forEach(el => el.setAttribute('content', themeColor))
+    } else {
+      const metaThemeColor = document.createElement('meta')
       metaThemeColor.setAttribute('name', 'theme-color')
+      metaThemeColor.setAttribute('content', themeColor)
       document.head.appendChild(metaThemeColor)
     }
 
     if (isPortaal) {
+      document.documentElement.classList.add('portal-theme', 'portaal')
       document.body.classList.add('portal-theme', 'portaal')
       document.documentElement.style.background = '#162544'
       document.documentElement.style.backgroundColor = '#162544'
       document.body.style.backgroundColor = '#D9D9D9'
-      metaThemeColor.setAttribute('content', '#162544')
     } else {
+      document.documentElement.classList.remove('portal-theme', 'portaal')
       document.body.classList.remove('portal-theme', 'portaal')
       document.documentElement.style.background = ''
       document.documentElement.style.backgroundColor = ''
       document.body.style.backgroundColor = 'var(--color-bg-linen)'
-      metaThemeColor.setAttribute('content', '#650B19')
     }
   }, [pathname])
 

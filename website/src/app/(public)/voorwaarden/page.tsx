@@ -66,7 +66,7 @@ export default function VoorwaardenPage() {
             background: 'var(--color-bg-white)',
             borderRadius: 'var(--border-radius-lg)',
             boxShadow: 'var(--shadow-md)',
-            padding: '40px 48px',
+            padding: 'clamp(24px, 5vw, 44px) clamp(18px, 4.5vw, 40px)',
             border: '1px solid var(--color-border)'
           }}
         >
@@ -77,7 +77,14 @@ export default function VoorwaardenPage() {
             field="title"
             defaultValue="Algemene Verkoopsvoorwaarden"
             as="h2"
-            style={{ marginBottom: 8 }}
+            style={{
+              marginBottom: 8,
+              fontSize: 'clamp(1.4rem, 5.2vw, 2.25rem)',
+              wordBreak: 'break-word',
+              overflowWrap: 'break-word',
+              hyphens: 'auto',
+              lineHeight: 1.25,
+            }}
           />
           <EditableText
             blockKey="voorwaarden.main.sub"

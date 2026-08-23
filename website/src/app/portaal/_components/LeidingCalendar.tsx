@@ -53,32 +53,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
 
   const rightColumnRef = useRef<HTMLDivElement | null>(null)
 
-  useEffect(() => {
-    if (!twoColumn) return
 
-    const handleGlobalWheel = (e: WheelEvent) => {
-      const rightCol = rightColumnRef.current
-      if (!rightCol) return
-
-      if (window.innerWidth <= 992) return
-
-      if (document.querySelector('.portaal-modal-overlay') || document.querySelector('.event-modal-overlay')) {
-        return
-      }
-
-      if (rightCol.contains(e.target as Node)) {
-        return
-      }
-
-      e.preventDefault()
-      rightCol.scrollTop += e.deltaY
-    }
-
-    window.addEventListener('wheel', handleGlobalWheel, { passive: false })
-    return () => {
-      window.removeEventListener('wheel', handleGlobalWheel)
-    }
-  }, [twoColumn])
 
   function showFlash(msg: string) { setFlash(msg); setTimeout(() => setFlash(''), 3000) }
 
@@ -672,7 +647,14 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
         // Two-column: filter bar + calendar grid left (sticky), activity list right
         <div className="portal-agenda-layout">
           {/* Left: filter bar + calendar grid */}
-          <div className="portal-agenda-left-column">
+          <div
+            className="portal-agenda-left-column"
+            onWheel={(e) => {
+              if (window.innerWidth > 1024 && rightColumnRef.current) {
+                rightColumnRef.current.scrollTop += e.deltaY
+              }
+            }}
+          >
             {FilterBar()}
             {selectedDate && (
               <div style={{ marginBottom: 12, padding: '8px 14px', background: '#EBF0F9', border: '1.5px solid #D0DCEE', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>

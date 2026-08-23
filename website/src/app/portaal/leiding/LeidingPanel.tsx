@@ -23,6 +23,7 @@ export default function LeidingPanel({ isGroepsleiding = false, settings, unappr
       maxWidth: 1200,
       margin: '0 auto',
       width: '100%',
+      minHeight: '100vh',
       padding: '40px 24px',
       boxSizing: 'border-box',
       display: 'flex',

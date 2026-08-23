@@ -40,8 +40,9 @@ export default function PortaalLayoutClient({ children, naam, role, settings }: 
 
   useEffect(() => {
     if (!showNav) return
+    document.documentElement.style.background = '#162544'
+    document.documentElement.style.backgroundColor = '#162544'
     document.body.style.backgroundColor = canvasBgColor
-    document.documentElement.style.backgroundColor = canvasBgColor
     document.body.style.backgroundImage = ''
     return () => {
       document.body.style.backgroundImage = ''
@@ -144,10 +145,8 @@ export default function PortaalLayoutClient({ children, naam, role, settings }: 
               backgroundColor: isHomePage ? '#162544' : '#D9D9D9',
               position: 'relative',
               minHeight: '100vh',
-              overflowX: 'hidden',
               minWidth: 0,
               width: '100%',
-              overscrollBehavior: 'none',
             }}
           >
             {isHomePage && (
@@ -241,10 +240,6 @@ export default function PortaalLayoutClient({ children, naam, role, settings }: 
                 width: '100%',
                 backgroundColor: isHomePage ? 'transparent' : '#D9D9D9',
                 minHeight: isHomePage ? '100vh' : 'calc(100vh - 64px)',
-                display: isHomePage ? 'flex' : 'block',
-                flexDirection: isHomePage ? 'column' : undefined,
-                justifyContent: isHomePage ? 'center' : undefined,
-                alignItems: isHomePage ? 'center' : undefined,
                 paddingTop: isHomePage ? 0 : 64,
                 boxSizing: 'border-box',
                 position: 'relative',

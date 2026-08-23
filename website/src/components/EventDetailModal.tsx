@@ -75,21 +75,13 @@ export function EventDetailDialog({ event, todayMs, onClose, onEdit, isPortal }:
     setMounted(true)
   }, [])
 
-  const [yy, mm, dd] = event.date.split('-').map(Number)
-  const d = new Date(yy, (mm ?? 1) - 1, dd ?? 1)
   const dateInfo = getEventDateDetails(event)
-
-  const diff = Math.round((d.getTime() - todayMs) / 86400000)
-  const countdown = diff === 0 ? 'Vandaag' : diff === 1 ? 'Morgen' : diff > 1 ? `Nog ${diff} dagen` : 'Afgelopen'
 
   const titleColor = isPortal ? '#162544' : 'var(--color-primary-dark, #40050E)'
   const metaBg = isPortal ? '#EBF0F9' : '#FAF6EE'
   const metaBorder = isPortal ? '1.5px solid #D0DCEE' : '1.5px solid #EADECC'
   const metaIconColor = isPortal ? '#243B6B' : 'var(--color-primary, #650B19)'
   const metaTextColor = isPortal ? '#162544' : 'var(--color-primary-dark, #40050E)'
-  const countdownBg = isPortal ? '#EBF0F9' : '#FAF6EE'
-  const countdownBorder = isPortal ? '1px solid #D0DCEE' : '1px solid #EADECC'
-  const countdownColor = isPortal ? '#162544' : 'var(--color-primary-dark, #40050E)'
 
   if (!mounted || typeof document === 'undefined') return null
 
@@ -112,17 +104,13 @@ export function EventDetailDialog({ event, todayMs, onClose, onEdit, isPortal }:
           )}
 
           <div className="cal-modal-content-inner">
-            {/* Header: Title on left, inline Countdown & Action Buttons on right */}
-            <div className="cal-modal-title-wrap" style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 16, width: '100%' }}>
-              <h3 style={{ margin: 0, color: titleColor, fontSize: 'clamp(1.35rem, 4.5vw, 1.8rem)', fontWeight: 900, lineHeight: 1.2, fontFamily: 'var(--font-heading, Nunito, sans-serif)', wordBreak: 'break-word', flex: '1 1 auto' }}>
+            {/* Header: Title on left, Action Buttons on right (stacked on mobile) */}
+            <div className={`cal-modal-title-wrap${onEdit ? ' has-edit' : ''}`}>
+              <h3 className="cal-modal-title-heading" style={{ margin: 0, color: titleColor, fontSize: 'clamp(1.45rem, 5vw, 2.05rem)', fontWeight: 900, lineHeight: 1.22, fontFamily: 'var(--font-heading, Nunito, sans-serif)', wordBreak: 'break-word', flex: '1 1 auto', minWidth: 0 }}>
                 {event.title}
               </h3>
 
-              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0, marginLeft: 'auto' }}>
-                <span style={{ fontSize: '.78rem', fontWeight: 700, padding: '5px 12px', borderRadius: 99, background: countdownBg, color: countdownColor, border: countdownBorder, whiteSpace: 'nowrap', display: 'inline-flex', alignItems: 'center', gap: 6 }}>
-                  <i className="fa-regular fa-clock" style={{ fontSize: '.74rem' }}></i> {countdown}
-                </span>
-
+              <div className="cal-modal-header-actions">
                 {onEdit && (
                   <button
                     type="button"
@@ -131,13 +119,13 @@ export function EventDetailDialog({ event, todayMs, onClose, onEdit, isPortal }:
                       onEdit()
                     }}
                     style={{
-                      height: 32,
-                      padding: '0 14px',
-                      borderRadius: 16,
+                      height: 34,
+                      padding: '0 15px',
+                      borderRadius: 17,
                       border: 'none',
                       background: '#243B6B',
                       color: '#fff',
-                      fontSize: '.82rem',
+                      fontSize: '.84rem',
                       fontWeight: 700,
                       cursor: 'pointer',
                       display: 'inline-flex',
@@ -146,6 +134,7 @@ export function EventDetailDialog({ event, todayMs, onClose, onEdit, isPortal }:
                       boxShadow: '0 2px 6px rgba(36,59,107,0.2)',
                       fontFamily: 'inherit',
                       transition: 'all 0.15s ease',
+                      flexShrink: 0,
                     }}
                   >
                     <i className="fa-solid fa-pen" style={{ fontSize: '.75rem' }}></i> Bewerken
@@ -156,19 +145,20 @@ export function EventDetailDialog({ event, todayMs, onClose, onEdit, isPortal }:
                   type="button"
                   onClick={onClose}
                   style={{
-                    width: 32,
-                    height: 32,
+                    width: 34,
+                    height: 34,
                     borderRadius: '50%',
                     border: 'none',
                     background: isPortal ? '#EBF0F9' : '#F0ECE4',
                     color: isPortal ? '#162544' : '#555',
-                    fontSize: '.85rem',
+                    fontSize: '.9rem',
                     fontWeight: 800,
                     cursor: 'pointer',
                     display: 'inline-flex',
                     alignItems: 'center',
                     justifyContent: 'center',
                     transition: 'all 0.15s ease',
+                    flexShrink: 0,
                   }}
                   aria-label="Sluiten"
                 >
@@ -271,24 +261,21 @@ export function EventDetailDialog({ event, todayMs, onClose, onEdit, isPortal }:
             )}
 
             {/* Agenda Footer */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: 12, paddingTop: 18, borderTop: '1px solid #ede9e1' }}>
-              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 8 }}>
-                <span style={{ fontSize: '.75rem', fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: 4 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 10, paddingTop: 16, borderTop: '1px solid #ede9e1' }}>
+              <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', gap: 6 }}>
+                <span style={{ fontSize: '.72rem', fontWeight: 800, color: '#888', textTransform: 'uppercase', letterSpacing: '0.05em', marginRight: 2 }}>
                   Zet in je agenda:
                 </span>
                 <a href={googleCalUrl(event)} className="cal-add-btn" target="_blank" rel="noopener noreferrer">
-                  <i className="fa-brands fa-google"></i> Google Calendar
+                  <i className="fa-brands fa-google"></i> Google
                 </a>
                 <button
                   type="button"
                   className="cal-add-btn"
                   onClick={() => { window.location.href = `webcal://${window.location.host}/api/kalender/ics?event=${event.id}` }}
                 >
-                  <i className="fa-brands fa-apple"></i> Apple Calendar
+                  <i className="fa-brands fa-apple"></i> Apple
                 </button>
-                <a href={`/api/kalender/ics?event=${event.id}`} download className="cal-add-btn">
-                  <i className="fa-solid fa-download"></i> Download .ics
-                </a>
               </div>
             </div>
           </div>

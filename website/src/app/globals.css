@@ -113,7 +113,14 @@ html {
     color: var(--color-text-dark);
     overscroll-behavior: none;
     overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
+}
+
+html.portal-theme,
+html.portaal,
+html:has(body.portal-theme),
+html:has(body.portaal) {
+    background: #162544 !important;
+    background-color: #162544 !important;
 }
 
 body {
@@ -127,7 +134,6 @@ body {
     width: 100%;
     overscroll-behavior: none;
     overscroll-behavior-y: none;
-    overscroll-behavior-x: none;
 }
 
 /* Scroll locking when modals, dialogs, lightboxes or mobile menus are open */
@@ -2771,16 +2777,18 @@ body.portal-theme .tak-hero.primair {
 .cal-add-btn {
     display: inline-flex;
     align-items: center;
-    gap: 6px;
-    font-size: 0.8rem;
+    gap: 5px;
+    font-size: 0.73rem;
     font-weight: 700;
     color: #243B6B;
     background-color: #EBF0F9;
     border: 1px solid #D0DCEE;
-    border-radius: 30px;
-    padding: 6px 14px;
+    border-radius: 20px;
+    padding: 3px 10px;
     text-decoration: none;
     transition: all 0.15s ease;
+    cursor: pointer;
+    font-family: inherit;
 }
 
 .cal-add-btn:hover {
@@ -4731,7 +4739,7 @@ body.portal-theme .portaal-nav {
     background: #94A3B8;
 }
 
-@media (max-width: 992px) {
+@media (max-width: 1024px) {
     .portal-agenda-layout {
         grid-template-columns: 1fr;
         height: auto;
@@ -7336,6 +7344,14 @@ body.portal-theme .portaal-nav {
     width: 100%;
 }
 
+.cal-modal-header-actions {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-shrink: 0;
+    margin-left: auto;
+}
+
 .cal-modal-datetime-grid {
     grid-template-columns: 1fr 1.4fr;
 }
@@ -7359,8 +7375,7 @@ body.portal-theme .portaal-nav {
 
 /* Portaal home layout */
 .portaal-home-wrapper {
-    height: 100%;
-    max-height: 100%;
+    min-height: 100%;
     width: 100%;
     display: flex;
     flex-direction: column;
@@ -7368,7 +7383,6 @@ body.portal-theme .portaal-nav {
     justify-content: center;
     padding: 24px 24px 32px;
     box-sizing: border-box;
-    overflow: hidden;
 }
 
 .portaal-home-cards-grid {
@@ -7400,15 +7414,11 @@ body.portal-theme .portaal-nav {
 }
 
 .portaal-page-layout--home {
-    height: calc(100vh - 76px);
-    overflow: hidden;
+    min-height: calc(100vh - 76px);
 }
 
 .portaal-page-main--home {
-    height: 100%;
     min-height: 100%;
-    max-height: 100%;
-    overflow: hidden;
 }
 
 .portaal-back-link {
@@ -7601,6 +7611,20 @@ body.portal-theme .portaal-nav {
 }
 
 @media (max-width: 650px) {
+    .cal-modal-title-wrap.has-edit {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+    }
+
+    .cal-modal-title-wrap.has-edit .cal-modal-header-actions {
+        width: 100% !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: flex-end !important;
+        gap: 8px !important;
+    }
+
     .portal-activity-card-inner {
         flex-wrap: wrap !important;
         gap: 10px !important;
