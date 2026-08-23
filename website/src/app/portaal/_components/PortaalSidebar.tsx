@@ -226,7 +226,8 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
         style={{
           width: 260,
           minWidth: 260,
-          height: '100vh',
+          height: '100dvh',
+          maxHeight: '100dvh',
           position: 'fixed',
           top: 0,
           left: 0,
@@ -238,16 +239,19 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
           zIndex: 150,
           boxShadow: '4px 0 20px rgba(0, 0, 0, 0.2)',
           transition: 'transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+          paddingTop: 'env(safe-area-inset-top, 0px)',
+          boxSizing: 'border-box',
         }}
       >
-        {/* Top Brand Section: ONLY Logo + 'Leidingsportaal' text (No Kriko-M, no separate pill badge!) */}
-        <div>
+        {/* Top Section with Brand and Scrollable Navigation */}
+        <div style={{ display: 'flex', flexDirection: 'column', flex: 1, minHeight: 0, overflow: 'hidden' }}>
           <div style={{
             padding: '24px 20px 20px',
             borderBottom: '1px solid rgba(255, 255, 255, 0.12)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'space-between',
+            flexShrink: 0,
           }}>
             <Link
               href={isWebshop ? "/portaal/webshop/bestellingen" : "/portaal/home"}
@@ -297,8 +301,8 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
             )}
           </div>
 
-          {/* Navigation Section */}
-          <nav style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 6 }}>
+          {/* Scrollable Navigation Section */}
+          <nav style={{ padding: '16px 12px', display: 'flex', flexDirection: 'column', gap: 6, flex: 1, overflowY: 'auto', minHeight: 0 }}>
             <span style={{
               fontSize: '0.7rem',
               fontWeight: 800,
@@ -307,6 +311,7 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
               color: 'rgba(255, 255, 255, 0.55)',
               padding: '4px 12px',
               marginBottom: 2,
+              flexShrink: 0,
             }}>
               Navigatie
             </span>
@@ -328,6 +333,7 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
                   background: item.active ? '#243B6B' : 'transparent',
                   boxShadow: item.active ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none',
                   transition: 'all 0.15s ease',
+                  flexShrink: 0,
                 }}
                 className={`portaal-sidebar-item ${item.active ? 'active' : ''}`}
               >
@@ -350,9 +356,11 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
 
           return (
             <div style={{
-              padding: '16px 12px 20px',
+              padding: '14px 12px calc(16px + env(safe-area-inset-bottom, 0px))',
               borderTop: '1px solid rgba(255, 255, 255, 0.12)',
               position: 'relative',
+              flexShrink: 0,
+              background: '#162544',
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
                 

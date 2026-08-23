@@ -145,6 +145,9 @@ export default function PortaalLayoutClient({ children, naam, role, settings }: 
               position: 'relative',
               minHeight: '100vh',
               overflowX: 'hidden',
+              minWidth: 0,
+              width: '100%',
+              overscrollBehavior: 'none',
             }}
           >
             {isHomePage && (

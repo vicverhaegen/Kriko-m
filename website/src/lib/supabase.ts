@@ -7,7 +7,13 @@ const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholde
 
 // Client-side Supabase client (gebruik in componenten)
 export function createClient() {
-  return createBrowserClient(supabaseUrl, supabaseAnonKey)
+  return createBrowserClient(supabaseUrl, supabaseAnonKey, {
+    cookieOptions: {
+      maxAge: 60 * 60 * 24 * 365,
+      sameSite: 'lax',
+      path: '/',
+    },
+  })
 }
 
 // Server-side Supabase client (gebruik in Server Components & API routes)

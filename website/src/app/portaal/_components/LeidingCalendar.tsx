@@ -209,16 +209,16 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
     const todayStr = toLocalDateStr(today)
 
     return (
-      <div style={{ background: '#fff', borderRadius: 18, border: 'none', overflow: 'hidden', boxShadow: '0 10px 32px rgba(0,0,0,0.16)' }}>
+      <div style={{ background: '#fff', borderRadius: 18, border: 'none', overflow: 'hidden', boxShadow: '0 10px 32px rgba(0,0,0,0.16)', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
         {/* Bordeaux header bar */}
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 20px', background: '#243B6B', color: '#fff', flexWrap: 'wrap', gap: 10 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-            <h2 className="cal-grid-month-title" style={{ color: '#fff', fontSize: '1.45rem', margin: 0, fontWeight: 800, fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
-              <i className="fa-regular fa-calendar-days" style={{ fontSize: '1.25rem', marginRight: 6 }}></i> {MAANDEN[calMonth + 1]} {calYear}
+        <div className="portal-cal-header-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#243B6B', color: '#fff', flexWrap: 'wrap', gap: 8 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
+            <h2 className="cal-grid-month-title" style={{ color: '#fff', fontSize: 'clamp(1.1rem, 3.8vw, 1.45rem)', margin: 0, fontWeight: 800, fontFamily: 'var(--font-heading, Nunito, sans-serif)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <i className="fa-regular fa-calendar-days" style={{ fontSize: '1.15rem' }}></i> {MAANDEN[calMonth + 1]} {calYear}
             </h2>
           </div>
 
-          <div className="cal-grid-nav">
+          <div className="cal-grid-nav" style={{ flexShrink: 0, display: 'flex', alignItems: 'center', gap: 6 }}>
             <button
               type="button"
               className="cal-grid-nav-btn"
@@ -287,66 +287,88 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                   {isToday && <span className="portal-cal-grid-today-tag">Vandaag</span>}
                 </div>
 
-                {/* Render event pills inside cell */}
+                {/* Render event pills & micro-dots inside cell */}
                 {hasEvents && (
                   <div className="portal-cal-grid-cell-events">
-                    {dayEvents.map(ev => {
-                      const primaryTag = getPrimaryAudienceTag(ev.audience)
-                      const isImportant = ev.is_evenement
-                      const isTak = primaryTag !== 'groep' && primaryTag !== 'leiding'
-                      const isNoMeeting = ev.title.toLowerCase().includes('geen vergadering')
-                      const iconClass = getEventIcon(ev)
-                      const tagColor = PORTAAL_AUDIENCE_KLEUREN[primaryTag] || '#243B6B'
-                      const isYellow = primaryTag === 'kapoenen'
+                    {/* Compact dots visible on narrow mobile screens (<= 480px) */}
+                    <div className="portal-cal-mobile-dots">
+                      {dayEvents.slice(0, 3).map(ev => {
+                        const primaryTag = getPrimaryAudienceTag(ev.audience)
+                        const tagColor = PORTAAL_AUDIENCE_KLEUREN[primaryTag] || '#243B6B'
+                        return (
+                          <span
+                            key={ev.id}
+                            className="portal-cal-dot"
+                            style={{ backgroundColor: tagColor }}
+                            title={ev.title}
+                          />
+                        )
+                      })}
+                      {dayEvents.length > 3 && (
+                        <span className="portal-cal-more-dots">+{dayEvents.length - 3}</span>
+                      )}
+                    </div>
 
-                      let pillStyle: React.CSSProperties = {}
+                    {/* Standard pills (desktop and medium mobile) */}
+                    <div className="portal-cal-pills-list">
+                      {dayEvents.map(ev => {
+                        const primaryTag = getPrimaryAudienceTag(ev.audience)
+                        const isImportant = ev.is_evenement
+                        const isTak = primaryTag !== 'groep' && primaryTag !== 'leiding'
+                        const isNoMeeting = ev.title.toLowerCase().includes('geen vergadering')
+                        const iconClass = getEventIcon(ev)
+                        const tagColor = PORTAAL_AUDIENCE_KLEUREN[primaryTag] || '#243B6B'
+                        const isYellow = primaryTag === 'kapoenen'
 
-                      if (isImportant || isTak) {
-                        pillStyle = {
-                          background: tagColor,
-                          color: isYellow ? '#3A2A00' : '#FFFFFF',
-                          border: `1px solid ${tagColor}`,
-                          boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
-                        }
-                      } else if (isNoMeeting) {
-                        pillStyle = {
-                          background: '#F0F0F0',
-                          color: '#777777',
-                          border: '1px solid #CCCCCC',
-                        }
-                      } else {
-                        pillStyle = {
-                          background: isYellow ? '#FEF3D6' : `${tagColor}1E`,
-                          color: isYellow ? '#3A2A00' : '#162544',
-                          borderLeft: `3.5px solid ${tagColor}`,
-                        }
-                      }
+                        let pillStyle: React.CSSProperties = {}
 
-                      if (!isCurrentMonth) {
-                        pillStyle = {
-                          ...pillStyle,
-                          opacity: 0.75,
-                          filter: 'grayscale(0.35)'
+                        if (isImportant || isTak) {
+                          pillStyle = {
+                            background: tagColor,
+                            color: isYellow ? '#3A2A00' : '#FFFFFF',
+                            border: `1px solid ${tagColor}`,
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
+                          }
+                        } else if (isNoMeeting) {
+                          pillStyle = {
+                            background: '#F0F0F0',
+                            color: '#777777',
+                            border: '1px solid #CCCCCC',
+                          }
+                        } else {
+                          pillStyle = {
+                            background: isYellow ? '#FEF3D6' : `${tagColor}1E`,
+                            color: isYellow ? '#3A2A00' : '#162544',
+                            borderLeft: `3.5px solid ${tagColor}`,
+                          }
                         }
-                      }
 
-                      return (
-                        <button
-                          key={ev.id}
-                          type="button"
-                          className="portal-cal-event-pill"
-                          style={pillStyle}
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setActiveViewEvent(ev)
-                          }}
-                          title={`${ev.title} (${ev.time || 'Hele dag'})`}
-                        >
-                          {iconClass ? <i className={`fa-solid ${iconClass} portal-pill-icon`} /> : null}
-                          <span className="portal-cal-event-pill-title">{ev.title}</span>
-                        </button>
-                      )
-                    })}
+                        if (!isCurrentMonth) {
+                          pillStyle = {
+                            ...pillStyle,
+                            opacity: 0.75,
+                            filter: 'grayscale(0.35)'
+                          }
+                        }
+
+                        return (
+                          <button
+                            key={ev.id}
+                            type="button"
+                            className="portal-cal-event-pill"
+                            style={pillStyle}
+                            onClick={(e) => {
+                              e.stopPropagation()
+                              setActiveViewEvent(ev)
+                            }}
+                            title={`${ev.title} (${ev.time || 'Hele dag'})`}
+                          >
+                            {iconClass ? <i className={`fa-solid ${iconClass} portal-pill-icon`} /> : null}
+                            <span className="portal-cal-event-pill-title">{ev.title}</span>
+                          </button>
+                        )
+                      })}
+                    </div>
                   </div>
                 )}
               </div>
@@ -491,10 +513,14 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                 boxShadow: highlighted ? '0 4px 14px rgba(201,150,58,.22)' : '0 2px 8px rgba(0,0,0,0.04)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
+                width: '100%',
+                maxWidth: '100%',
+                boxSizing: 'border-box',
+                minWidth: 0,
               }}
               onClick={() => setActiveViewEvent(ev)}
             >
-              <div className="portal-activity-card-inner">
+              <div className="portal-activity-card-inner" style={{ minWidth: 0, width: '100%' }}>
                 <DateBox date={ev.date} datumTot={ev.datum_tot || undefined} isImportant={isImportant} tag={primaryTag} />
                 
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -507,19 +533,22 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                     alignItems: 'center',
                     gap: 8,
                     lineHeight: 1.25,
+                    minWidth: 0,
+                    wordBreak: 'break-word',
+                    overflowWrap: 'anywhere',
                   }}>
                     {iconClass ? <i className={`fa-solid ${iconClass}`} style={{ color: '#243B6B', fontSize: '1.05rem', flexShrink: 0 }}></i> : null}
-                    <span style={{ wordBreak: 'break-word' }}>{ev.title}</span>
+                    <span style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', minWidth: 0 }}>{ev.title}</span>
                   </strong>
                   {((!isMultiDay && ev.time) || ev.location) && (
                     <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 3, fontSize: '.78rem', color: '#666666', fontWeight: 600, flexWrap: 'wrap' }}>
                       {!isMultiDay && ev.time && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
                           <i className="fa-regular fa-clock" style={{ fontSize: '.72rem', color: '#243B6B' }}></i> {ev.time}
                         </span>
                       )}
                       {ev.location && (
-                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4 }}>
+                        <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0, wordBreak: 'break-word' }}>
                           <i className="fa-solid fa-location-dot" style={{ fontSize: '.72rem', color: '#243B6B' }}></i> {ev.location}
                         </span>
                       )}
@@ -527,7 +556,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                   )}
                 </div>
 
-                <div className="portal-activity-card-actions">
+                <div className="portal-activity-card-actions" style={{ minWidth: 0 }}>
                   <TagChips tags={ev.audience} compact />
                   <span style={{ fontSize: '.85rem', color: '#243B6B', fontWeight: 800 }}>
                     <i className="fa-solid fa-chevron-right"></i>
