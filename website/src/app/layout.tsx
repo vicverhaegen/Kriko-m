@@ -77,6 +77,7 @@ export default function RootLayout({
     <html lang="nl" className={`${outfit.variable} ${nunito.variable} ${rubikDirt.variable}`} suppressHydrationWarning>
       <head>
         <link rel="icon" type="image/png" href="/images/logo-finaal.png" />
+        <link rel="apple-touch-icon" href="/images/apple-touch-icon.png" />
         <script
           type="application/ld+json"
           dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }}

@@ -7,17 +7,17 @@ export default function manifest(): MetadataRoute.Manifest {
     description: 'Scouts Kriko-M uit Sint-Niklaas — Takken, kalender, Kriko Echo, verhuur en webshop.',
     start_url: '/',
     display: 'standalone',
-    background_color: '#F0ECE4',
+    background_color: '#650B19',
     theme_color: '#650B19',
     icons: [
       {
-        src: '/images/logo-finaal.png',
+        src: '/images/app-icon-192.png',
         sizes: '192x192',
         type: 'image/png',
         purpose: 'any',
       },
       {
-        src: '/images/logo-finaal.png',
+        src: '/images/app-icon-512.png',
         sizes: '512x512',
         type: 'image/png',
         purpose: 'maskable',
