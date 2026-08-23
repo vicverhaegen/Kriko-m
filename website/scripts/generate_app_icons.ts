@@ -72,7 +72,15 @@ async function generateIcons() {
   fs.writeFileSync(path.join(PUBLIC_DIR, 'apple-touch-icon.png'), appleIcon)
   fs.writeFileSync(path.join(APP_DIR, 'apple-icon.png'), appleIcon)
 
-  console.log('Created apple-touch-icon.png and src/app/apple-icon.png')
+  // 4. Generate 32x32 and 192x192 favicon icon for Next.js App Router
+  const faviconIcon = await sharp(LOGO_PATH)
+    .resize(192, 192, { fit: 'contain', background: { r: 0, g: 0, b: 0, alpha: 0 } })
+    .png()
+    .toBuffer()
+
+  fs.writeFileSync(path.join(APP_DIR, 'icon.png'), faviconIcon)
+
+  console.log('Created apple-touch-icon.png, src/app/apple-icon.png, and src/app/icon.png')
 }
 
 generateIcons().catch(console.error)
