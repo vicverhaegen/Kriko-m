@@ -100,7 +100,7 @@ export function EventDetailDialog({ event, todayMs, onClose, onEdit, isPortal }:
         style={{ position: 'fixed', inset: 0, background: 'rgba(10,0,5,0.5)', backdropFilter: 'blur(6px)', WebkitBackdropFilter: 'blur(6px)', zIndex: 3500 }}
         onClick={onClose}
       />
-      <div className="portaal-modal-overlay kalender-modal-overlay event-modal-overlay" style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3501, padding: '36px 16px', pointerEvents: 'none' }}>
+      <div className="portaal-modal-overlay kalender-modal-overlay event-modal-overlay" style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3700, padding: '36px 16px', pointerEvents: 'none' }}>
         <div
           style={{ position: 'relative', pointerEvents: 'auto', background: '#fff', borderRadius: 22, boxShadow: '0 40px 100px rgba(58,7,16,0.26), 0 0 0 1px rgba(0,0,0,0.04)', width: '95%', maxWidth: 960, maxHeight: 'calc(100vh - 90px)', overflowY: 'auto', overflowX: 'hidden', display: 'flex', flexDirection: 'column' }}
           onClick={(e) => e.stopPropagation()}

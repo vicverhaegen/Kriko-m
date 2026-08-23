@@ -101,9 +101,12 @@ body {
 }
 
 /* Scroll locking when modals, dialogs, lightboxes or mobile menus are open */
-html.scroll-locked,
-body.scroll-locked {
+html.scroll-locked {
     overflow: hidden !important;
+    touch-action: none;
+    overscroll-behavior: none;
+}
+body.scroll-locked {
     touch-action: none;
     overscroll-behavior: none;
 }
@@ -230,7 +233,7 @@ html, body {
 .site-header {
     position: sticky;
     top: 0;
-    z-index: 1000;
+    z-index: 3600;
     width: 100%;
 }
 
@@ -504,7 +507,7 @@ html, body {
 /* Scroll-naar-boven knop */
 .scroll-top-btn {
     position: fixed;
-    bottom: 20px;
+    bottom: calc(20px + env(safe-area-inset-bottom, 0px));
     right: 20px;
     width: 48px;
     height: 48px;
@@ -1822,7 +1825,7 @@ body.portal-theme .tak-hero.primair {
 .site-footer-bottom {
     max-width: 1300px;
     margin: 0 auto;
-    padding: 16px 0;
+    padding: 16px 0 calc(16px + env(safe-area-inset-bottom, 0px));
     font-size: 0.72rem;
     color: rgba(255,255,255,0.25);
     letter-spacing: 0.04em;
@@ -1840,6 +1843,7 @@ body.portal-theme .tak-hero.primair {
 .footer-legal-links a {
     color: rgba(255,255,255,0.55);
     text-decoration: none;
+    padding: 4px 2px;
 }
 .footer-legal-links a:hover {
     color: rgba(255,255,255,0.9);
@@ -1850,6 +1854,21 @@ body.portal-theme .tak-hero.primair {
     .site-footer-inner {
         grid-template-columns: 1fr 1fr;
         gap: 32px;
+    }
+}
+
+@media (max-width: 768px) {
+    .site-footer-bottom {
+        padding: 20px 0 calc(28px + env(safe-area-inset-bottom, 0px));
+        flex-direction: column;
+        align-items: center;
+        text-align: center;
+        gap: 14px;
+    }
+    .footer-legal-links {
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 10px;
     }
 }
 
@@ -7875,8 +7894,13 @@ body.portal-theme .portaal-nav {
   background-color: #FFFFFF;
   color: #162544;
   font-weight: 600;
-  font-size: 0.95rem;
+  font-size: 16px; /* Minstens 16px voorkomt auto-zoom en input-lock op iOS WebKit / Home Screen PWA */
   outline: none;
+  -webkit-appearance: none;
+  appearance: none;
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 

@@ -169,7 +169,7 @@ export default function KalenderActiviteitModal({
   return createPortal(
     <>
       <div className="portaal-modal-overlay kalender-modal-overlay" style={{ position: 'fixed', inset: 0, background: 'rgba(22,37,68,0.55)', backdropFilter: 'blur(5px)', WebkitBackdropFilter: 'blur(5px)', zIndex: 3500 }} onClick={onClose} />
-      <div className="portaal-modal-overlay kalender-modal-overlay" style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3501, padding: '36px 16px', pointerEvents: 'none' }}>
+      <div className="portaal-modal-overlay kalender-modal-overlay" style={{ position: 'fixed', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 3700, padding: '36px 16px', pointerEvents: 'none' }}>
         <div style={{ pointerEvents: 'auto', width: '95%', maxWidth: 720, maxHeight: 'calc(100vh - 90px)', overflowY: 'auto', overflowX: 'hidden', background: '#fff', borderRadius: 20, padding: 32, boxShadow: '0 24px 60px rgba(0,0,0,0.22)', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Header */}

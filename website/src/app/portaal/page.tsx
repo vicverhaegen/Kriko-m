@@ -34,6 +34,7 @@ function PortaalContent() {
   const [selectedRole, setSelectedRole] = useState<RoleType>('leiding')
   const [roleDropdownOpen, setRoleDropdownOpen] = useState(false)
   const [password, setPassword] = useState('')
+  const [showPassword, setShowPassword] = useState(false)
   const [status, setStatus] = useState<'idle' | 'loading'>('idle')
   const [checkingSession, setCheckingSession] = useState(true)
   const [error, setError] = useState('')
@@ -263,19 +264,49 @@ function PortaalContent() {
             </div>
 
             <div>
-              <label style={{ display: 'block', fontSize: '.85rem', fontWeight: 700, color: '#162544', marginBottom: 8 }}>
+              <label htmlFor="portal-password" style={{ display: 'block', fontSize: '.85rem', fontWeight: 700, color: '#162544', marginBottom: 8 }}>
                 Wachtwoord
               </label>
-              <input
-                type="password"
-                name="password"
-                required
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="portaal-input"
-                autoFocus
-              />
+              <div style={{ position: 'relative' }}>
+                <input
+                  id="portal-password"
+                  type={showPassword ? 'text' : 'password'}
+                  name="password"
+                  required
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="portaal-input"
+                  autoComplete="current-password"
+                  autoCapitalize="none"
+                  autoCorrect="off"
+                  spellCheck="false"
+                  style={{ paddingRight: 44 }}
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(p => !p)}
+                  aria-label={showPassword ? "Wachtwoord verbergen" : "Wachtwoord tonen"}
+                  tabIndex={-1}
+                  style={{
+                    position: 'absolute',
+                    right: 0,
+                    top: 0,
+                    bottom: 0,
+                    width: 44,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    background: 'transparent',
+                    border: 'none',
+                    color: '#64748B',
+                    cursor: 'pointer',
+                    fontSize: '1rem',
+                  }}
+                >
+                  <i className={`fa-regular ${showPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
+                </button>
+              </div>
             </div>
 
             <button type="submit" disabled={status === 'loading'} className="portaal-btn-primary" style={{ width: '100%', padding: '14px', marginTop: 8, fontSize: '0.95rem' }}>
