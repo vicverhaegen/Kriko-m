@@ -42,6 +42,9 @@ export const metadata: Metadata = {
     description: "Kriko-m uit Sint-Niklaas.",
     images: ["/images/logo-finaal.png"],
   },
+  verification: {
+    google: "VRKRv6yqB3HGOcwJnIw4isZW0Xx-qPiq-GRsUqDtTm8",
+  },
 };
 
 const jsonLd = {
