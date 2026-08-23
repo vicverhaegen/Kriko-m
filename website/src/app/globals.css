@@ -86,12 +86,12 @@
 
 /* Aangepaste Tekstselectie (Branding) */
 ::selection {
-    background-color: #650B19;
-    color: #FCEBBE;
+    background-color: #3A0710;
+    color: #FFF8EB;
 }
 ::-moz-selection {
-    background-color: #650B19;
-    color: #FCEBBE;
+    background-color: #3A0710;
+    color: #FFF8EB;
 }
 
 /* Portaal tekstselectie */
