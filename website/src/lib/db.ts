@@ -17,9 +17,14 @@ export function normalizeSettings(data: any): any {
 
 export const getSettings = unstable_cache(
   async () => {
-    const supabase = createAdminClient()
-    const { data } = await supabase.from('settings').select('*').single()
-    return normalizeSettings(data)
+    try {
+      const supabase = createAdminClient()
+      const { data } = await supabase.from('settings').select('*').single()
+      return normalizeSettings(data)
+    } catch (err) {
+      console.error('getSettings exception:', err)
+      return null
+    }
   },
   ['settings-cache'],
   { revalidate: 300, tags: ['settings'] }
@@ -28,21 +33,31 @@ export const getSettings = unstable_cache(
 // Actief werkjaar = settings.scouts_year. Direct (ongecachet) gelezen omdat dit
 // bij schrijfacties gebruikt wordt om nieuwe records te taggen.
 export async function getActiveWerkjaar(): Promise<string> {
-  const supabase = createAdminClient()
-  const { data } = await supabase.from('settings').select('scouts_year').eq('id', 1).single()
-  return data?.scouts_year ?? ''
+  try {
+    const supabase = createAdminClient()
+    const { data } = await supabase.from('settings').select('scouts_year').eq('id', 1).single()
+    return data?.scouts_year ?? ''
+  } catch (err) {
+    console.error('getActiveWerkjaar exception:', err)
+    return ''
+  }
 }
 
 // Alle kalender-events (oudercalender + interne leiding-events). Voor portaal /
 // leiding-views en de private ICS-feed.
 export const getAllCalendarEvents = unstable_cache(
   async () => {
-    const supabase = createAdminClient()
-    const { data } = await supabase
-      .from('calendar')
-      .select('*')
-      .order('date', { ascending: true })
-    return data ?? []
+    try {
+      const supabase = createAdminClient()
+      const { data } = await supabase
+        .from('calendar')
+        .select('*')
+        .order('date', { ascending: true })
+      return data ?? []
+    } catch (err) {
+      console.error('getAllCalendarEvents exception:', err)
+      return []
+    }
   },
   ['calendar-all-cache'],
   { revalidate: 300, tags: ['calendar'] }
@@ -52,13 +67,18 @@ export const getAllCalendarEvents = unstable_cache(
 // publieke site en de publieke ICS-feed.
 export const getPublicCalendarEvents = unstable_cache(
   async () => {
-    const supabase = createAdminClient()
-    const { data } = await supabase
-      .from('calendar')
-      .select('*')
-      .contains('audience', ['groep'])
-      .order('date', { ascending: true })
-    return data ?? []
+    try {
+      const supabase = createAdminClient()
+      const { data } = await supabase
+        .from('calendar')
+        .select('*')
+        .contains('audience', ['groep'])
+        .order('date', { ascending: true })
+      return data ?? []
+    } catch (err) {
+      console.error('getPublicCalendarEvents exception:', err)
+      return []
+    }
   },
   ['calendar-public-cache'],
   { revalidate: 300, tags: ['calendar'] }
@@ -66,21 +86,31 @@ export const getPublicCalendarEvents = unstable_cache(
 
 // Geheim token voor de private leiding-ICS-feed (ongecachet — beveiligingswaarde).
 export async function getLeidingIcsToken(): Promise<string> {
-  const supabase = createAdminClient()
-  const { data } = await supabase.from('settings').select('leiding_ics_token').eq('id', 1).single()
-  return data?.leiding_ics_token ?? ''
+  try {
+    const supabase = createAdminClient()
+    const { data } = await supabase.from('settings').select('leiding_ics_token').eq('id', 1).single()
+    return data?.leiding_ics_token ?? ''
+  } catch (err) {
+    console.error('getLeidingIcsToken exception:', err)
+    return ''
+  }
 }
 
 export const getEchos = unstable_cache(
   async () => {
-    const supabase = createAdminClient()
-    const { data } = await supabase
-      .from('echos')
-      .select('*')
-      .eq('approved', true)
-      .order('year', { ascending: false })
-      .order('month', { ascending: false })
-    return data ?? []
+    try {
+      const supabase = createAdminClient()
+      const { data } = await supabase
+        .from('echos')
+        .select('*')
+        .eq('approved', true)
+        .order('year', { ascending: false })
+        .order('month', { ascending: false })
+      return data ?? []
+    } catch (err) {
+      console.error('getEchos exception:', err)
+      return []
+    }
   },
   ['echos-cache'],
   { revalidate: 300, tags: ['echos'] }
@@ -88,45 +118,65 @@ export const getEchos = unstable_cache(
 
 export const getShopProducts = unstable_cache(
   async () => {
-    const supabase = createAdminClient()
-    const { data } = await supabase
-      .from('shop_products')
-      .select('*')
-      .eq('active', true)
-      .order('sort_order', { ascending: true })
-    return data ?? []
+    try {
+      const supabase = createAdminClient()
+      const { data } = await supabase
+        .from('shop_products')
+        .select('*')
+        .eq('active', true)
+        .order('sort_order', { ascending: true })
+      return data ?? []
+    } catch (err) {
+      console.error('getShopProducts exception:', err)
+      return []
+    }
   },
   ['shop-products-cache-v2'],
   { revalidate: 10, tags: ['shop-products'] }
 )
 
 export async function getOrders() {
-  const supabase = createAdminClient()
-  const { data } = await supabase
-    .from('orders')
-    .select('*')
-    .order('created_at', { ascending: false })
-  return data ?? []
+  try {
+    const supabase = createAdminClient()
+    const { data } = await supabase
+      .from('orders')
+      .select('*')
+      .order('created_at', { ascending: false })
+    return data ?? []
+  } catch (err) {
+    console.error('getOrders exception:', err)
+    return []
+  }
 }
 
 export async function getMessages() {
-  const supabase = createAdminClient()
-  const { data } = await supabase
-    .from('messages')
-    .select('*')
-    .order('created_at', { ascending: false })
-  return data ?? []
+  try {
+    const supabase = createAdminClient()
+    const { data } = await supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: false })
+    return data ?? []
+  } catch (err) {
+    console.error('getMessages exception:', err)
+    return []
+  }
 }
 
 export const getVerslagen = unstable_cache(
   async () => {
-    const supabase = createAdminClient()
-    const { data } = await supabase
-      .from('verslagen')
-      .select('*')
-      .eq('published', true)
-      .order('date', { ascending: false })
-    return data ?? []
+    try {
+      const supabase = createAdminClient()
+      const { data } = await supabase
+        .from('verslagen')
+        .select('*')
+        .eq('published', true)
+        .order('date', { ascending: false })
+      return data ?? []
+    } catch (err) {
+      console.error('getVerslagen exception:', err)
+      return []
+    }
   },
   ['verslagen-cache'],
   { revalidate: 300, tags: ['verslagen'] }

@@ -93,7 +93,7 @@ html {
 body {
     font-family: var(--font-outfit), -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
     line-height: 1.6;
-    overflow-x: clip; /* clip voorkomt horizontaal scrollen zonder een scroll-container te maken die root scrolling of position:sticky breekt */
+    overflow-x: clip; /* clip voorkomt horizontaal scrollen ZONDER position:sticky van de navigatie te breken */
     display: flex;
     flex-direction: column;
     min-height: 100vh;
@@ -148,7 +148,8 @@ html, body {
 .container {
     max-width: var(--max-width);
     margin: 0 auto;
-    padding: 0 24px;
+    padding-left: 24px;
+    padding-right: 24px;
     width: 100%;
 }
 
@@ -229,7 +230,8 @@ html, body {
 .site-header {
     position: sticky;
     top: 0;
-    z-index: 100;
+    z-index: 1000;
+    width: 100%;
 }
 
 .mainnav {
@@ -663,9 +665,10 @@ html, body {
    ========================================================================== */
 
 .vic-takken-section {
-    padding: 0 24px 72px;
+    padding-left: 24px;
+    padding-right: 24px;
     width: 100%;
-    max-width: 1200px;
+    max-width: 1240px;
     margin: 0 auto;
     box-sizing: border-box;
 }
@@ -960,18 +963,71 @@ body.portal-theme .tak-hero.primair {
 
 .tak-hero-title {
     font-family: var(--font-londrina), var(--font-nunito), Arial, sans-serif;
-    font-size: 3.8rem;
+    font-size: clamp(2.5rem, 8vw, 3.8rem);
     font-weight: 400;
     color: #fcebbe;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
+    max-width: 100%;
+    word-break: break-word;
 }
 
 .tak-layout {
     display: grid;
-    grid-template-columns: 2fr 1fr;
+    grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
     gap: 40px;
+    width: 100%;
+}
+
+.tak-card-block {
+    background-color: var(--color-bg-white);
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-md);
+    padding: 40px;
+    border: 1px solid var(--color-border);
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tak-leader-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 16px 20px;
+    background-color: var(--color-bg-linen);
+    border-radius: var(--border-radius-md);
+    border: 1px solid var(--color-border);
+    gap: 14px;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.tak-leader-phone-btn {
+    flex-shrink: 0;
+}
+
+@media (max-width: 768px) {
+    .tak-card-block {
+        padding: 24px 18px;
+        border-radius: var(--border-radius-md);
+    }
+    .leaders-section {
+        padding: 24px 18px;
+    }
+}
+
+@media (max-width: 580px) {
+    .tak-leader-row {
+        flex-direction: column;
+        align-items: flex-start;
+        padding: 14px 16px;
+        gap: 10px;
+    }
+    .tak-leader-phone-btn {
+        width: 100% !important;
+        justify-content: center !important;
+    }
 }
 
 /* Leader contact card */
@@ -981,6 +1037,8 @@ body.portal-theme .tak-hero.primair {
     box-shadow: var(--shadow-md);
     padding: 30px;
     border: 1px solid var(--color-border);
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .leaders-grid {
@@ -1810,6 +1868,11 @@ body.portal-theme .tak-hero.primair {
    ========================================================================== */
 
 @media (max-width: 992px) {
+    .site-header {
+        position: relative !important;
+        top: auto !important;
+    }
+
     h1 { font-size: 2.25rem; }
     h2 { font-size: 1.85rem; }
 
@@ -1905,9 +1968,6 @@ body.portal-theme .tak-hero.primair {
         gap: 16px;
     }
 
-    .vic-takken-section {
-        padding: 16px 20px 24px;
-    }
     .home-grid, .checkout-layout, .register-layout, .tak-layout {
         grid-template-columns: 1fr;
         gap: 30px;
@@ -1918,7 +1978,7 @@ body.portal-theme .tak-hero.primair {
     .hero-title { font-size: 3.6rem; }
     .hero-sub   { font-size: 1.1rem; letter-spacing: 0.12em; }
 
-    .vic-takken-section { padding: 60px 16px; }
+    .vic-takken-section { padding-left: 14px; padding-right: 14px; }
     .vic-takken-grid    { gap: 14px; }
 
     .form-row {
@@ -2119,36 +2179,58 @@ body.portal-theme .tak-hero.primair {
 
 /* Dunne accentlijn als scheiding tussen secties */
 .section-divider {
-    width: 72%;
+    width: min(85%, 1100px);
     height: 1px;
     background-color: var(--color-primary);
-    opacity: 0.2;
+    opacity: 0.15;
     margin: 0 auto;
     border: none;
+    display: block;
 }
 
 /* ==========================================================================
    12. Layout Helper Utilities & Responsive Structures
    ========================================================================== */
 
-/* Welcome block responsive grid on homepage */
+/* Standard Homepage Section Rhythm (Desktop: 64px, Tablet: 48px, Mobile: 40px) */
+.home-section {
+    padding-top: 64px !important;
+    padding-bottom: 64px !important;
+}
+
+#welkom {
+    scroll-margin-top: 80px;
+}
+
 .welcome-grid {
     display: grid;
     grid-template-columns: 1fr 1fr;
     gap: 40px;
     align-items: center;
-    margin-bottom: 50px;
+    margin-bottom: 0;
 }
 
 @media (max-width: 992px) {
+    .home-section {
+        padding-top: 48px !important;
+        padding-bottom: 48px !important;
+    }
     .welcome-grid {
         grid-template-columns: 1fr;
-        gap: 30px;
+        gap: 28px;
+        margin-bottom: 0;
     }
     .welcome-grid div[style*="rotate"] {
         transform: none !important;
         margin: 20px auto 0;
         max-width: 500px;
+    }
+}
+
+@media (max-width: 600px) {
+    .home-section {
+        padding-top: 40px !important;
+        padding-bottom: 40px !important;
     }
 }
 
@@ -6033,7 +6115,7 @@ body.portal-theme .portaal-nav {
     box-shadow: var(--shadow-md);
     border: 1px solid var(--color-border);
     padding: 36px 36px;
-    margin-bottom: 40px;
+    margin-bottom: 0;
 }
 
 @media (min-width: 1240px) {
@@ -7520,7 +7602,8 @@ body.portal-theme .portaal-nav {
 
 @media (max-width: 640px) {
     .container {
-        padding: 0 14px !important;
+        padding-left: 14px !important;
+        padding-right: 14px !important;
     }
     /* Kriko Echo: 1-column layout so PDF titles & dates are fully visible */
     .echo-grid {
