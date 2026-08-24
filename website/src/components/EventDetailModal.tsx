@@ -67,7 +67,7 @@ function googleCalUrl(event: CalendarEvent) {
   return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(`Kriko-M | ${event.title}`)}&dates=${d}/${d}&details=${encodeURIComponent(event.description ?? '')}&location=${encodeURIComponent(event.location ?? '')}`
 }
 
-export function EventDetailDialog({ event, todayMs, onClose, onEdit, isPortal }: { event: CalendarEvent; todayMs: number; onClose: () => void; onEdit?: () => void; isPortal?: boolean }) {
+export function EventDetailDialog({ event, todayMs: _todayMs, onClose, onEdit, isPortal }: { event: CalendarEvent; todayMs?: number; onClose: () => void; onEdit?: () => void; isPortal?: boolean }) {
   const [mounted, setMounted] = useState(false)
   useScrollLock(true)
 
