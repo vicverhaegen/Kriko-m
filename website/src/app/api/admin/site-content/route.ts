@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { revalidatePath, revalidateTag } from 'next/cache'
+import { revalidateTag } from 'next/cache'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase'
 
 export async function GET() {
@@ -74,7 +74,6 @@ export async function POST(req: Request) {
       }
 
       revalidateTag('site-content', 'max')
-      revalidatePath('/', 'layout')
 
       return NextResponse.json({ success: true, count: rowsToUpsert.length })
     }
@@ -103,7 +102,6 @@ export async function POST(req: Request) {
 
     // Cache revalidatie voor instant live updates op de publieke site
     revalidateTag('site-content', 'max')
-    revalidatePath('/', 'layout')
 
     return NextResponse.json({ success: true, key })
 

@@ -6,6 +6,16 @@ export async function middleware(request: NextRequest) {
     request,
   })
 
+  // Skip Supabase Auth handshake for public traffic without auth cookies
+  const pathname = request.nextUrl.pathname
+  const hasAuthCookie = request.cookies.getAll().some(c => c.name.includes('-auth-token'))
+  const isProtectedPath = pathname.startsWith('/portaal') || pathname.startsWith('/api/admin')
+
+  // If this is a public request and no auth token cookie exists, return immediately (0ms CPU)
+  if (!hasAuthCookie && !isProtectedPath) {
+    return supabaseResponse
+  }
+
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dcvrjpbbybkasppgjiyh.supabase.co'
   const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
 

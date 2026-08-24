@@ -27,7 +27,7 @@ export const getSettings = unstable_cache(
     }
   },
   ['settings-cache'],
-  { revalidate: 300, tags: ['settings'] }
+  { revalidate: 3600, tags: ['settings'] }
 )
 
 // Actief werkjaar = settings.scouts_year. Direct (ongecachet) gelezen omdat dit
@@ -60,7 +60,7 @@ export const getAllCalendarEvents = unstable_cache(
     }
   },
   ['calendar-all-cache'],
-  { revalidate: 300, tags: ['calendar'] }
+  { revalidate: 3600, tags: ['calendar'] }
 )
 
 // Enkel publieke events (audience bevat 'groep') — de oudercalender. Voor de
@@ -81,7 +81,7 @@ export const getPublicCalendarEvents = unstable_cache(
     }
   },
   ['calendar-public-cache'],
-  { revalidate: 300, tags: ['calendar'] }
+  { revalidate: 3600, tags: ['calendar'] }
 )
 
 // Geheim token voor de private leiding-ICS-feed (ongecachet — beveiligingswaarde).
@@ -113,7 +113,7 @@ export const getEchos = unstable_cache(
     }
   },
   ['echos-cache'],
-  { revalidate: 300, tags: ['echos'] }
+  { revalidate: 3600, tags: ['echos'] }
 )
 
 export const getShopProducts = unstable_cache(
@@ -132,7 +132,7 @@ export const getShopProducts = unstable_cache(
     }
   },
   ['shop-products-cache-v2'],
-  { revalidate: 10, tags: ['shop-products'] }
+  { revalidate: 3600, tags: ['shop-products'] }
 )
 
 export async function getOrders() {
@@ -179,7 +179,7 @@ export const getVerslagen = unstable_cache(
     }
   },
   ['verslagen-cache'],
-  { revalidate: 300, tags: ['verslagen'] }
+  { revalidate: 3600, tags: ['verslagen'] }
 )
 
 export const getSiteContent = unstable_cache(
@@ -208,7 +208,7 @@ export const getSiteContent = unstable_cache(
     }
   },
   ['site-content-cache'],
-  { revalidate: 300, tags: ['site-content'] }
+  { revalidate: 3600, tags: ['site-content'] }
 )
 
 

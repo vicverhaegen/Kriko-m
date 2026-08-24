@@ -38,14 +38,18 @@ export async function createServerSupabaseClient() {
 }
 
 // Admin client met service role (alleen server-side, nooit naar client sturen)
-import { createClient as createSupabaseClient } from '@supabase/supabase-js'
+import { createClient as createSupabaseClient, SupabaseClient } from '@supabase/supabase-js'
+
+let _adminClient: SupabaseClient | null = null
 
 export function createAdminClient() {
+  if (_adminClient) return _adminClient
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://dcvrjpbbybkasppgjiyh.supabase.co'
   const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder'
-  return createSupabaseClient(
+  _adminClient = createSupabaseClient(
     url,
     key,
     { auth: { autoRefreshToken: false, persistSession: false } }
   )
+  return _adminClient
 }
