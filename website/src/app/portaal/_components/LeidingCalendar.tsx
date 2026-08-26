@@ -156,12 +156,11 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
       <span className="cal-tag-chips-wrap">
         {tags.map(t => {
           const isYellow = t === 'kapoenen'
-          const isGrl = t === 'grl'
-          const tagBg = isYellow ? '#FEF3D6' : isGrl ? '#E6F4ED' : `${PORTAAL_AUDIENCE_KLEUREN[t]}1E`
-          const tagColor = isYellow ? '#8C6700' : isGrl ? '#1E7E52' : PORTAAL_AUDIENCE_KLEUREN[t]
+          const tagBg = PORTAAL_AUDIENCE_KLEUREN[t] || '#243B6B'
+          const tagColor = isYellow ? '#3A2A00' : '#FFFFFF'
           return (
             <span key={t} style={{
-              padding: compact ? '2px 7px' : '2px 9px',
+              padding: compact ? '2px 8px' : '3px 10px',
               borderRadius: 20,
               fontSize: compact ? '9.5px' : '11px',
               fontWeight: 800,
@@ -169,9 +168,10 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
               letterSpacing: '0.4px',
               background: tagBg,
               color: tagColor,
-              border: isGrl ? '1px solid #B4DEC7' : 'none',
+              border: 'none',
               lineHeight: 1.3,
               whiteSpace: 'nowrap',
+              boxShadow: '0 1px 3px rgba(0,0,0,0.12)',
             }}>
               {AUDIENCE_NAMEN[t]}
             </span>
@@ -297,8 +297,6 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                     <div className="portal-cal-pills-list">
                       {dayEvents.map(ev => {
                         const primaryTag = getPrimaryAudienceTag(ev.audience)
-                        const isImportant = ev.is_evenement
-                        const isTak = primaryTag !== 'groep' && primaryTag !== 'leiding'
                         const isNoMeeting = ev.title.toLowerCase().includes('geen vergadering')
                         const iconClass = getEventIcon(ev)
                         const tagColor = PORTAAL_AUDIENCE_KLEUREN[primaryTag] || '#243B6B'
@@ -306,24 +304,19 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
 
                         let pillStyle: React.CSSProperties = {}
 
-                        if (isImportant || isTak) {
+                        if (isNoMeeting) {
+                          pillStyle = {
+                            background: '#64748B',
+                            color: '#FFFFFF',
+                            border: '1px solid #64748B',
+                            boxShadow: '0 2px 6px rgba(0,0,0,0.14)',
+                          }
+                        } else {
                           pillStyle = {
                             background: tagColor,
                             color: isYellow ? '#3A2A00' : '#FFFFFF',
                             border: `1px solid ${tagColor}`,
                             boxShadow: '0 2px 6px rgba(0,0,0,0.18)',
-                          }
-                        } else if (isNoMeeting) {
-                          pillStyle = {
-                            background: '#F0F0F0',
-                            color: '#777777',
-                            border: '1px solid #CCCCCC',
-                          }
-                        } else {
-                          pillStyle = {
-                            background: isYellow ? '#FEF3D6' : `${tagColor}1E`,
-                            color: isYellow ? '#3A2A00' : '#162544',
-                            borderLeft: `3.5px solid ${tagColor}`,
                           }
                         }
 
@@ -371,8 +364,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
     monthColor: string
   }
 
-  function getDateBoxStyles(tag: AudienceTag, isImportant: boolean): DateBoxStyle {
-    // Takken (kapoenen, welpen, jonggivers, givers) krijgen altijd de volle/donkere tak-kleur zonder rand
+  function getDateBoxStyles(tag: AudienceTag): DateBoxStyle {
     switch (tag) {
       case 'kapoenen':
         return { bg: '#F4C842', border: 'none', dayColor: '#3A2A00', monthColor: '#473400' }
@@ -383,25 +375,19 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
       case 'givers':
         return { bg: '#1A3FB5', border: 'none', dayColor: '#FFFFFF', monthColor: '#EEF2FC' }
       case 'groep':
-        return isImportant
-          ? { bg: '#650B19', border: 'none', dayColor: '#FFFFFF', monthColor: '#F9EBEF' }
-          : { bg: '#F9EBEF', border: '#E8BDC7', dayColor: '#650B19', monthColor: '#8C182B' }
+        return { bg: '#650B19', border: 'none', dayColor: '#FFFFFF', monthColor: '#F9EBEF' }
       case 'grl':
-        return isImportant
-          ? { bg: '#1E7E52', border: 'none', dayColor: '#FFFFFF', monthColor: '#E6F4ED' }
-          : { bg: '#E6F4ED', border: '#B4DEC7', dayColor: '#1E7E52', monthColor: '#145A3A' }
+        return { bg: '#1E7E52', border: 'none', dayColor: '#FFFFFF', monthColor: '#E6F4ED' }
       case 'leiding':
       default:
-        return isImportant
-          ? { bg: '#162544', border: 'none', dayColor: '#FFFFFF', monthColor: '#EBF0F9' }
-          : { bg: '#EBF0F9', border: '#D0DCEE', dayColor: '#162544', monthColor: '#243B6B' }
+        return { bg: '#162544', border: 'none', dayColor: '#FFFFFF', monthColor: '#EBF0F9' }
     }
   }
 
   function DateBox({
     date,
     datumTot,
-    isImportant,
+    isImportant: _isImportant,
     tag = 'leiding',
   }: {
     date: string
@@ -417,7 +403,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
     const end = isMultiDay ? new Date(datumTot!) : null
     const sameMonth = end ? (start.getMonth() === end.getMonth() && start.getFullYear() === end.getFullYear()) : true
 
-    const { bg, border, dayColor, monthColor } = getDateBoxStyles(tag, !!isImportant)
+    const { bg, border, dayColor, monthColor } = getDateBoxStyles(tag)
 
     const boxStyle: React.CSSProperties = {
       flexShrink: 0,
