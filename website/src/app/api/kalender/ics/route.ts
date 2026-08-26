@@ -15,11 +15,11 @@ export async function GET(request: NextRequest) {
       calendarEvents = calendarEvents.filter(e => e.id === singleId)
     }
 
-    const lines = icsHeader('Scouts Kriko-M', 'Activiteiten en evenementen van Scouts Kriko-M', '#650B19')
+    const lines = icsHeader('Scouts Kriko-m', 'Activiteiten en evenementen van Scouts Kriko-m', '#650B19')
     const nowStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
     for (const event of calendarEvents) {
-      lines.push(...buildEventVevent(event, nowStr, 'Kriko-M | '))
+      lines.push(...buildEventVevent(event, nowStr, 'Kriko-m | '))
     }
 
     lines.push('END:VCALENDAR')

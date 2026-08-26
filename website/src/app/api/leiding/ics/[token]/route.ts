@@ -23,12 +23,12 @@ export async function GET(
     const allEvents = (await getAllCalendarEvents()) as CalendarEvent[]
     const events = allEvents.filter(e => !(e.audience ?? []).includes('grl'))
 
-    const lines = icsHeader('Scouts Kriko-M — Leiding', 'Volledige leidingkalender en takactiviteiten van Scouts Kriko-M', '#162544')
+    const lines = icsHeader('Leiding Kriko-m', 'Volledige leidingkalender en takactiviteiten van Scouts Kriko-m', '#162544')
     const nowStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
     for (const event of events) {
-      const tags = (event.audience ?? []).map(a => (a === 'groep' ? 'Kriko-M' : AUDIENCE_NAMEN[a] ?? a))
-      const prefix = tags.length ? `${tags.join(', ')} | ` : 'Kriko-M | '
+      const tags = (event.audience ?? []).map(a => (a === 'groep' ? 'Kriko-m' : AUDIENCE_NAMEN[a] ?? a))
+      const prefix = tags.length ? `${tags.join(', ')} | ` : 'Kriko-m | '
       lines.push(...buildEventVevent(event as IcsEvent, nowStr, prefix))
     }
 

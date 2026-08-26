@@ -13,7 +13,7 @@ interface SubscribeCalendarButtonProps {
 
 export default function SubscribeCalendarButton({
   feedPath = '/api/kalender/ics',
-  calendarName = 'Scouts Kriko-M',
+  calendarName = 'Scouts Kriko-m',
   buttonClassName = 'btn btn-secondary cal-actions-btn',
   buttonText = 'Abonneer op onze agenda',
   buttonStyle,
