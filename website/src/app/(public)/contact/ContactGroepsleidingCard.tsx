@@ -6,6 +6,7 @@ import { Leader } from '@/lib/types'
 import EditLeidingModal from '@/components/editing/EditLeidingModal'
 import EditableText from '@/components/editing/EditableText'
 import { useEditMode } from '@/components/editing/EditContext'
+import ProtectedPhone from '@/components/anti-scraping/ProtectedPhone'
 
 interface Props {
   initialLeaders: Leader[]
@@ -103,28 +104,7 @@ export default function ContactGroepsleidingCard({
                 </div>
 
                 {leader.phone ? (
-                  <a
-                    href={`tel:${leader.phone.replace(/\s+/g, '')}`}
-                    style={{
-                      display: 'inline-flex',
-                      alignItems: 'center',
-                      gap: 6,
-                      fontSize: '0.86rem',
-                      fontWeight: 700,
-                      color: 'var(--color-primary)',
-                      backgroundColor: '#fff',
-                      padding: '6px 12px',
-                      borderRadius: 'var(--border-radius-md)',
-                      border: '1px solid var(--color-border)',
-                      textDecoration: 'none',
-                      boxShadow: 'var(--shadow-sm)',
-                      flexShrink: 0,
-                      whiteSpace: 'nowrap',
-                    }}
-                  >
-                    <i className="fa-solid fa-phone" style={{ color: 'var(--color-secondary)', fontSize: '0.85em' }}></i>
-                    {leader.phone}
-                  </a>
+                  <ProtectedPhone phone={leader.phone} />
                 ) : (
                   <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontStyle: 'italic', flexShrink: 0 }}>
                     -

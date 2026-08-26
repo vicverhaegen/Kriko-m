@@ -4,10 +4,17 @@ import { sendContactFormNotification } from '@/lib/email'
 
 export async function POST(req: NextRequest) {
   try {
-    const { name, email, subject, message, website } = await req.json()
+    const { name, email, subject, message, website, _t } = await req.json()
 
     // Honeypot — bots vullen dit verborgen veld in.
     if (typeof website === 'string' && website.trim() !== '') {
+      return NextResponse.json({ ok: true }, { status: 200 })
+    }
+
+    // Bot-bescherming: als het formulier binnen 1.5 seconde is ingediend (of _t ontbreekt), behandel als bot
+    const timestamp = Number(_t)
+    if (!timestamp || Date.now() - timestamp < 1500) {
+      // Stilzwijgend succes teruggeven zodat de bot denkt dat het gelukt is en niet blijft proberen
       return NextResponse.json({ ok: true }, { status: 200 })
     }
 

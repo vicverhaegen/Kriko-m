@@ -5,6 +5,8 @@ import Image from 'next/image'
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import CopyButton from '@/components/CopyButton'
+import ProtectedPhone from '@/components/anti-scraping/ProtectedPhone'
+import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
 import WhatsAppJoinButton from '@/components/WhatsAppJoinButton'
 import EditableText from '@/components/editing/EditableText'
 import EditableImage from '@/components/editing/EditableImage'
@@ -372,8 +374,8 @@ export default function TakPageClient({
                       </div>
 
                       {leader.phone ? (
-                        <a
-                          href={`tel:${leader.phone.replace(/\s+/g, '')}`}
+                        <ProtectedPhone
+                          phone={leader.phone}
                           className="tak-leader-phone-btn"
                           style={{
                             display: 'inline-flex',
@@ -391,10 +393,7 @@ export default function TakPageClient({
                             flexShrink: 0,
                             whiteSpace: 'nowrap',
                           }}
-                        >
-                          <i className="fa-solid fa-phone" style={{ color: 'var(--color-secondary)' }}></i>
-                          {leader.phone}
-                        </a>
+                        />
                       ) : (
                         <span style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', fontStyle: 'italic', flexShrink: 0 }}>
                           -
@@ -499,14 +498,12 @@ export default function TakPageClient({
                 style={{ fontSize: '0.82rem', color: 'var(--color-text-muted)', marginBottom: 8 }}
               />
 
-              <CopyButton
-                text={takEmail}
-                variant="button"
+              <ProtectedEmail
+                email={takEmail}
+                showCopy
                 className="btn btn-secondary"
                 style={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 8 }}
-              >
-                {takEmail} <i className="fa-regular fa-copy" style={{ fontSize: '0.85em', opacity: 0.7 }}></i>
-              </CopyButton>
+              />
               <WhatsAppJoinButton
                 takName={takName}
                 whatsappUrl={takWhatsapp || `https://chat.whatsapp.com/placeholder-${slug}`}

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next'
 import { getSettings } from '@/lib/db'
 import ContactForm from './ContactForm'
-import CopyButton from '@/components/CopyButton'
+import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
 import ContactGroepsleidingCard from './ContactGroepsleidingCard'
 import EditableText from '@/components/editing/EditableText'
 import { Leader } from '@/lib/types'
@@ -67,8 +67,9 @@ export default async function ContactPage() {
               <ul className="contact-sidebar-list" style={{ marginTop: 16 }}>
                 <li className="contact-sidebar-item">
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>E-mail</span>
-                  <CopyButton
-                    text={settings?.contact_email ?? ''}
+                  <ProtectedEmail
+                    email={settings?.contact_email ?? 'groepsleiding@kriko-m.be'}
+                    showCopy
                     style={{
                       backgroundColor: 'transparent',
                       border: 'none',
@@ -82,9 +83,7 @@ export default async function ContactPage() {
                       alignItems: 'center',
                       gap: '6px'
                     }}
-                  >
-                    {settings?.contact_email}
-                  </CopyButton>
+                  />
                 </li>
                 <li className="contact-sidebar-item">
                   <span style={{ color: 'var(--color-text-muted)', fontSize: '0.9rem' }}>Adres</span>

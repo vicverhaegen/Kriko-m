@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import CopyButton from '@/components/CopyButton'
+import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
 import EditableText from '@/components/editing/EditableText'
 import EditableImage from '@/components/editing/EditableImage'
 
@@ -670,7 +671,7 @@ export default function InfoTabbedContent({ email, address: _address }: InfoTabb
                 page="info"
                 section="opmaat"
                 field="content"
-                defaultValue="De kostprijs voor kampen en weekends van alle kinderen jonger dan 12 jaar kan door middel van een fiscaal attest afgetrokken worden van de belastingen. Hiervoor moet de groepsleiding het ‘Attest inzake uitgaven voor de opvang van kinderen’ invullen en aan u bezorgen. U moet dit formulier dan bij uw belastingaangifte voegen. Stuur een mailtje naar groepsleiding@kriko-m.be indien u interesse heeft."
+                defaultValue="De kostprijs voor kampen en weekends van alle kinderen jonger dan 12 jaar kan door middel van een fiscaal attest afgetrokken worden van de belastingen. Hiervoor moet de groepsleiding het ‘Attest inzake uitgaven voor de opvang van kinderen’ invullen en aan u bezorgen. U moet dit formulier dan bij uw belastingaangifte voegen. Neem gerust contact op met de groepsleiding indien u interesse heeft."
                 as="p"
                 multiline
                 style={{ fontSize: '1.02rem', lineHeight: 1.7, color: 'var(--color-text-dark)', margin: 0, whiteSpace: 'pre-line' }}
@@ -834,9 +835,7 @@ export default function InfoTabbedContent({ email, address: _address }: InfoTabb
                 style={{ fontSize: '0.98rem', lineHeight: 1.6, color: 'var(--color-text-dark)', margin: 0, whiteSpace: 'pre-line' }}
               />
               <div style={{ marginTop: 4 }}>
-                <CopyButton text={email} variant="button" className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '0.95rem' }}>
-                  {email} <i className="fa-regular fa-copy" style={{ fontSize: '0.85em', opacity: 0.7 }}></i>
-                </CopyButton>
+                <ProtectedEmail email={email} showCopy className="btn btn-secondary" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: 8, fontSize: '0.95rem' }} />
               </div>
             </div>
 

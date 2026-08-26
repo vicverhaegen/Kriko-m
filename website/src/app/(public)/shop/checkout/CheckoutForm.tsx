@@ -10,6 +10,8 @@ export default function CheckoutForm() {
   const [error, setError] = useState('')
   const [hydrated, setHydrated] = useState(false)
 
+  const [loadedAt] = useState<number>(() => Date.now())
+
   useEffect(() => { setHydrated(true) }, [])
 
   useEffect(() => {
@@ -28,6 +30,7 @@ export default function CheckoutForm() {
         customer_name: fd.get('customer_name'),
         email: fd.get('email'),
         website: fd.get('website'), // honeypot
+        _t: loadedAt,
         cart: items,
       }),
     })

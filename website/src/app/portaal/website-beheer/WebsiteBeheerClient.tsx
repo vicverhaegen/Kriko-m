@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { createPortal } from 'react-dom'
 import Link from 'next/link'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -41,6 +41,7 @@ interface AccountInfo {
   role: string
   email: string
   naam: string
+  password?: string
 }
 
 
@@ -222,11 +223,13 @@ export default function WebsiteBeheerClient({ initialSettings, role }: Props) {
   const [editingAccountRole, setEditingAccountRole] = useState<'leiding' | 'groepsleiding' | 'webshop'>('leiding')
   const [editAccountName, setEditAccountName] = useState('')
   const [editAccountPassword, setEditAccountPassword] = useState('')
+  const [showAccountPassword, setShowAccountPassword] = useState(false)
+  const passwordInputRef = useRef<HTMLInputElement>(null)
   const [savingAccount, setSavingAccount] = useState(false)
   const [accountSuccess, setAccountSuccess] = useState('')
   const [accountError, setAccountError] = useState('')
 
-  async function fetchAccounts() {
+  const fetchAccounts = useCallback(async () => {
     setLoadingAccounts(true)
     setAccountError('')
     setAccountSuccess('')
@@ -236,26 +239,41 @@ export default function WebsiteBeheerClient({ initialSettings, role }: Props) {
       if (data.accounts) {
         setAccounts(data.accounts)
         const target = data.accounts.find((a: AccountInfo) => a.role === editingAccountRole)
-        if (target) setEditAccountName(target.naam)
+        if (target) {
+          setEditAccountName(target.naam)
+          setEditAccountPassword(target.password || '')
+        }
       }
     } catch {
       setAccountError('Kon accountgegevens niet laden.')
     } finally {
       setLoadingAccounts(false)
     }
-  }
+  }, [editingAccountRole])
+
+  useEffect(() => {
+    if (isInstellingenTab && role !== 'webshop') {
+      fetchAccounts()
+    }
+  }, [isInstellingenTab, role, fetchAccounts])
 
   function handleSelectAccountRole(roleType: 'leiding' | 'groepsleiding' | 'webshop') {
     setEditingAccountRole(roleType)
-    setEditAccountPassword('')
+    setShowAccountPassword(false)
     setAccountError('')
     setAccountSuccess('')
     const target = accounts.find(a => a.role === roleType)
-    if (target) setEditAccountName(target.naam)
+    if (target) {
+      setEditAccountName(target.naam)
+      setEditAccountPassword(target.password || '')
+    } else {
+      setEditAccountName('')
+      setEditAccountPassword('')
+    }
   }
 
-  async function handleSaveAccountInModal(e: React.FormEvent) {
-    e.preventDefault()
+  async function handleSaveAccountInModal(e?: React.FormEvent) {
+    if (e) e.preventDefault()
     setSavingAccount(true)
     setAccountError('')
     setAccountSuccess('')
@@ -274,15 +292,17 @@ export default function WebsiteBeheerClient({ initialSettings, role }: Props) {
       const data = await res.json()
       if (!res.ok || data.error) {
         setAccountError(data.error || 'Fout bij opslaan van account.')
+        return false
       } else {
         const roleLabel = editingAccountRole === 'leiding' ? 'Leiding' : editingAccountRole === 'groepsleiding' ? 'Groepsleiding' : 'Webshop & uniformen'
         setAccountSuccess(`Account voor ${roleLabel} succesvol bijgewerkt!`)
-        setEditAccountPassword('')
         await fetchAccounts()
         router.refresh()
+        return true
       }
     } catch {
       setAccountError('Netwerkfout bij opslaan.')
+      return false
     } finally {
       setSavingAccount(false)
     }
@@ -483,6 +503,11 @@ export default function WebsiteBeheerClient({ initialSettings, role }: Props) {
       if (!res.ok) {
         const err = await res.json()
         throw new Error(err.error || 'Opslaan mislukt')
+      }
+
+      // If groepsleiding also edited account details, save account too
+      if (editAccountName.trim()) {
+        await handleSaveAccountInModal()
       }
 
       const successText = 'Instellingen succesvol opgeslagen!'
@@ -1518,12 +1543,12 @@ export default function WebsiteBeheerClient({ initialSettings, role }: Props) {
                 </div>
 
                 {/* SECTIE 3: ACCOUNTBEHEER & WACHTWOORDEN */}
-                <div style={{ backgroundColor: '#F8FAFC', padding: 20, borderRadius: 16, border: '1.5px solid #E2E8F0' }}>
+                <div id="accountbeheer" style={{ backgroundColor: '#F8FAFC', padding: 20, borderRadius: 16, border: '1.5px solid #E2E8F0' }}>
                   <h4 style={{ margin: '0 0 4px', fontSize: '1.05rem', fontWeight: 900, color: '#162544', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
                     👥 Accountbeheer — Rollen &amp; Wachtwoorden
                   </h4>
                   <p style={{ margin: '0 0 14px', fontSize: '0.84rem', color: '#64748B' }}>
-                    Pas de weergavenaam of het wachtwoord aan voor de 3 hoofdaccounts van de website (Leiding, Groepsleiding, Webshop).
+                    Pas de weergavenaam of het wachtwoord aan voor de 3 hoofdaccounts van het portaal (Leiding, Groepsleiding, Webshop).
                   </p>
 
                   {loadingAccounts ? (
@@ -1599,7 +1624,7 @@ export default function WebsiteBeheerClient({ initialSettings, role }: Props) {
                       <div className="portaal-account-form-grid">
                         <div>
                           <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 4 }}>
-                            Weergavenaam ({editingAccountRole === 'leiding' ? 'Leiding' : editingAccountRole === 'groepsleiding' ? 'Groepsleiding' : 'Webshop'})
+                            Weergavenaam {editingAccountRole === 'leiding' ? 'Leiding' : editingAccountRole === 'groepsleiding' ? 'Groepsleiding' : 'Webshop'}
                           </label>
                           <input
                             type="text"
@@ -1608,21 +1633,91 @@ export default function WebsiteBeheerClient({ initialSettings, role }: Props) {
                             required
                             placeholder="Bijv. Leiding Kriko-M"
                             disabled={savingAccount}
-                            style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #CBD5E1', borderRadius: 8, fontSize: '0.9rem', background: '#fff', fontWeight: 700, color: '#162544' }}
+                            style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #CBD5E1', borderRadius: 8, fontSize: '0.9rem', background: '#fff', fontWeight: 700, color: '#162544', boxSizing: 'border-box' }}
                           />
                         </div>
                         <div>
                           <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 4 }}>
-                            Nieuw Wachtwoord (min. 6 tekens)
+                            Wachtwoord {editingAccountRole === 'leiding' ? 'Leiding' : editingAccountRole === 'groepsleiding' ? 'Groepsleiding' : 'Webshop'}
                           </label>
-                          <input
-                            type="password"
-                            value={editAccountPassword}
-                            onChange={(e) => setEditAccountPassword(e.target.value)}
-                            placeholder="Laat leeg om niet te wijzigen"
-                            disabled={savingAccount}
-                            style={{ width: '100%', padding: '10px 12px', border: '1.5px solid #CBD5E1', borderRadius: 8, fontSize: '0.9rem', background: '#fff', color: '#162544' }}
-                          />
+                          <div style={{ position: 'relative', display: 'flex', alignItems: 'center' }}>
+                            <input
+                              ref={passwordInputRef}
+                              type={showAccountPassword ? 'text' : 'password'}
+                              value={editAccountPassword}
+                              onChange={(e) => setEditAccountPassword(e.target.value)}
+                              placeholder={editAccountPassword ? '••••••••' : 'Wachtwoord instellen (min. 6 tekens)'}
+                              disabled={savingAccount}
+                              style={{
+                                width: '100%',
+                                padding: '10px 76px 10px 12px',
+                                border: '1.5px solid #CBD5E1',
+                                borderRadius: 8,
+                                fontSize: '0.9rem',
+                                background: '#fff',
+                                fontWeight: 700,
+                                color: '#162544',
+                                boxSizing: 'border-box',
+                              }}
+                            />
+                            <div style={{ position: 'absolute', right: 6, display: 'flex', alignItems: 'center', gap: 2 }}>
+                              {/* Oogje knop */}
+                              <button
+                                type="button"
+                                onClick={() => setShowAccountPassword(prev => !prev)}
+                                title={showAccountPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
+                                aria-label={showAccountPassword ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'}
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 6,
+                                  border: 'none',
+                                  background: showAccountPassword ? '#E2E8F0' : 'transparent',
+                                  color: '#475569',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.92rem',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <i className={`fa-regular ${showAccountPassword ? 'fa-eye-slash' : 'fa-eye'}`} />
+                              </button>
+
+                              {/* Potloodje knop */}
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  if (passwordInputRef.current) {
+                                    passwordInputRef.current.focus()
+                                    passwordInputRef.current.select()
+                                  }
+                                }}
+                                title="Wachtwoord aanpassen"
+                                aria-label="Wachtwoord aanpassen"
+                                style={{
+                                  width: 32,
+                                  height: 32,
+                                  borderRadius: 6,
+                                  border: 'none',
+                                  background: 'transparent',
+                                  color: '#243B6B',
+                                  cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'center',
+                                  fontSize: '0.92rem',
+                                  transition: 'all 0.15s ease',
+                                }}
+                              >
+                                <i className="fa-solid fa-pencil" />
+                              </button>
+                            </div>
+                          </div>
+                          <span style={{ display: 'block', fontSize: '0.75rem', color: '#64748B', marginTop: 4 }}>
+                            Klik op het oogje om het wachtwoord te bekijken of op het potloodje om het aan te passen.
+                          </span>
                         </div>
                       </div>
 
@@ -1641,7 +1736,7 @@ export default function WebsiteBeheerClient({ initialSettings, role }: Props) {
                             cursor: savingAccount ? 'wait' : 'pointer',
                           }}
                         >
-                          {savingAccount ? 'Opslaan…' : 'Account Opslaan'}
+                          {savingAccount ? 'Opslaan…' : `Account ${editingAccountRole === 'leiding' ? 'Leiding' : editingAccountRole === 'groepsleiding' ? 'Groepsleiding' : 'Webshop'} Opslaan`}
                         </button>
                       </div>
                     </form>

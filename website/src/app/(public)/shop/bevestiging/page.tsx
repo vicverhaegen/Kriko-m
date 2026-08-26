@@ -1,6 +1,7 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
+import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
 
 interface OrderData {
   order_ref: string
@@ -114,7 +115,7 @@ export default function BevestigingPage() {
               Ophalen van je bestelling
             </h3>
             <p style={{ fontSize: '0.92rem', color: 'var(--color-text-dark)', lineHeight: 1.55, margin: 0 }}>
-              De webshopverantwoordelijke communiceert zelf per e-mail (via <a href={`mailto:${notificationEmail}`} style={{ color: 'var(--color-primary)', fontWeight: 800, textDecoration: 'underline' }}>{notificationEmail}</a>) wanneer en waar je je bestelling kan komen ophalen.
+              De webshopverantwoordelijke communiceert zelf per e-mail (via <ProtectedEmail email={notificationEmail} />) wanneer en waar je je bestelling kan komen ophalen.
             </p>
           </div>
 

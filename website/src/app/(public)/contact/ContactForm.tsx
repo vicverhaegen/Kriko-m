@@ -4,11 +4,13 @@ import { useState } from 'react'
 
 export default function ContactForm() {
   const [status, setStatus] = useState<'idle'|'sending'|'ok'|'error'>('idle')
+  const [loadedAt] = useState<number>(() => Date.now())
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setStatus('sending')
     const data = Object.fromEntries(new FormData(e.currentTarget))
+    data._t = String(loadedAt)
     const res = await fetch('/api/contact', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) })
     setStatus(res.ok ? 'ok' : 'error')
   }

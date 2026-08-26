@@ -9,7 +9,7 @@ export default function VoorwaardenPage() {
     {
       id: 'verkoper',
       title: '1. Identiteit van de verkoper',
-      text: 'Scouts Kriko-M vzw, gevestigd te Industriepark-Noord 33, 9100 Sint-Niklaas. Ondernemingsnummer (KBO): BE0409.040.288 (niet btw-plichtig). Contact via e-mail: groepsleiding@kriko-m.be.'
+      text: 'Scouts Kriko-M vzw, gevestigd te Industriepark-Noord 33, 9100 Sint-Niklaas. Ondernemingsnummer (KBO): BE0409.040.288 (niet btw-plichtig). Contact via het contactformulier of e-mail naar de groepsleiding.'
     },
     {
       id: 'toepasselijkheid',
@@ -29,7 +29,7 @@ export default function VoorwaardenPage() {
     {
       id: 'herroeping',
       title: '5. Herroepingsrecht & Retournering',
-      text: 'Voor niet-gepersonaliseerde en ongebruikte artikelen in originele staat heb je het recht om de aankoop binnen 14 kalenderdagen na afhaling te herroepen zonder opgave van reden. Neem voor retournering of omruiling vooraf contact op via groepsleiding@kriko-m.be. Gepersonaliseerde artikelen (indien van toepassing) vallen buiten het herroepingsrecht.'
+      text: 'Voor niet-gepersonaliseerde en ongebruikte artikelen in originele staat heb je het recht om de aankoop binnen 14 kalenderdagen na afhaling te herroepen zonder opgave van reden. Neem voor retournering of omruiling vooraf contact op via het contactformulier. Gepersonaliseerde artikelen (indien van toepassing) vallen buiten het herroepingsrecht.'
     },
     {
       id: 'voorraad',
@@ -39,7 +39,7 @@ export default function VoorwaardenPage() {
     {
       id: 'klachten',
       title: '7. Klachten & Contact',
-      text: 'Heb je vragen, opmerkingen of een klacht over je bestelling? Neem dan gerust contact op met de groepsleiding via groepsleiding@kriko-m.be. We zoeken steeds samen naar een passende oplossing.'
+      text: 'Heb je vragen, opmerkingen of een klacht over je bestelling? Neem dan gerust contact op met de groepsleiding via de contactpagina. We zoeken steeds samen naar een passende oplossing.'
     }
   ]
 

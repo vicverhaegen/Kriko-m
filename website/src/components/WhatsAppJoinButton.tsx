@@ -9,7 +9,8 @@ interface Props {
 export default function WhatsAppJoinButton({ takName, whatsappUrl }: Props) {
   const [isOpen, setIsOpen] = useState(false)
 
-  const qrCodeUrl = `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(whatsappUrl)}`
+  const activeUrl = whatsappUrl || `https://chat.whatsapp.com/placeholder-${takName.toLowerCase()}`
+  const qrCodeUrl = isOpen ? `https://api.qrserver.com/v1/create-qr-code/?size=180x180&data=${encodeURIComponent(activeUrl)}` : ''
 
   return (
     <>
@@ -118,7 +119,7 @@ export default function WhatsAppJoinButton({ takName, whatsappUrl }: Props) {
 
             {/* Direct Join Button */}
             <a
-              href={whatsappUrl}
+              href={activeUrl}
               target="_blank"
               rel="noopener noreferrer"
               className="btn"

@@ -38,7 +38,7 @@ export default function PrivacyPage() {
     {
       id: 'rechten',
       title: '7. Jouw rechten',
-      text: 'Je hebt recht op inzage, correctie, beperking of verwijdering van je persoonsgegevens. Neem hiervoor contact met ons op via groepsleiding@kriko-m.be.'
+      text: 'Je hebt recht op inzage, correctie, beperking of verwijdering van je persoonsgegevens. Neem hiervoor contact met ons op via ons contactformulier of per mail naar de groepsleiding.'
     }
   ]
 

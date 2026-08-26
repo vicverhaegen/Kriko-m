@@ -29,18 +29,21 @@ export async function GET() {
           role: 'leiding',
           email: leiding?.email || 'leiding@kriko-m.be',
           naam: leiding?.user_metadata?.naam || 'Leiding',
+          password: leiding?.user_metadata?.portal_password || '',
         },
         {
           id: groepsleiding?.id || null,
           role: 'groepsleiding',
           email: groepsleiding?.email || 'groepsleiding@kriko-m.be',
           naam: groepsleiding?.user_metadata?.naam || 'Groepsleiding',
+          password: groepsleiding?.user_metadata?.portal_password || '',
         },
         {
           id: webshop?.id || null,
           role: 'webshop',
           email: webshop?.email || 'webshop@kriko-m.be',
           naam: webshop?.user_metadata?.naam || 'Webshop & uniformen',
+          password: webshop?.user_metadata?.portal_password || '',
         },
       ]
     })
@@ -71,12 +74,12 @@ export async function POST(request: Request) {
     const targetUser = users.find(u => u.email === targetEmail)
 
     const updatePayload: Record<string, unknown> = {}
+    const updatedMetadata = { ...(targetUser?.user_metadata || {}) }
+    let metadataChanged = false
 
     if (newName && newName.trim()) {
-      updatePayload.user_metadata = {
-        ...(targetUser?.user_metadata || {}),
-        naam: newName.trim(),
-      }
+      updatedMetadata.naam = newName.trim()
+      metadataChanged = true
     }
 
     if (newPassword && newPassword.trim()) {
@@ -84,6 +87,12 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: 'Wachtwoord moet minstens 6 tekens lang zijn.' }, { status: 400 })
       }
       updatePayload.password = newPassword.trim()
+      updatedMetadata.portal_password = newPassword.trim()
+      metadataChanged = true
+    }
+
+    if (metadataChanged) {
+      updatePayload.user_metadata = updatedMetadata
     }
 
     if (Object.keys(updatePayload).length === 0) {
@@ -99,7 +108,10 @@ export async function POST(request: Request) {
         password: initialPassword,
         email_confirm: true,
         app_metadata: { role },
-        user_metadata: { naam: newName?.trim() || defaultNaam },
+        user_metadata: {
+          naam: newName?.trim() || defaultNaam,
+          ...(newPassword?.trim() ? { portal_password: newPassword.trim() } : {}),
+        },
       })
       if (createError) throw createError
       return NextResponse.json({ success: true, message: 'Account succesvol aangemaakt en bijgewerkt.' })

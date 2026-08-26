@@ -2,6 +2,8 @@
 
 import { useState } from 'react'
 import CopyButton from '@/components/CopyButton'
+import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
+import ProtectedIBAN from '@/components/anti-scraping/ProtectedIBAN'
 import EditableText from '@/components/editing/EditableText'
 
 interface Props {
@@ -186,9 +188,7 @@ export default function InschrijvenClient({ email, year: _year }: Props) {
                   />
                 </span>
               </div>
-              <CopyButton text={email} className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.86rem', whiteSpace: 'nowrap' }}>
-                <i className="fas fa-envelope" style={{ marginRight: 6 }}></i> {email}
-              </CopyButton>
+              <ProtectedEmail email={email} showCopy className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '0.86rem', whiteSpace: 'nowrap' }} />
             </div>
           </div>
 
@@ -385,9 +385,7 @@ export default function InschrijvenClient({ email, year: _year }: Props) {
                   <strong>Begunstigde:</strong> Scouts Kriko-M &nbsp;|&nbsp; <strong>Vermelding:</strong> <code>[Naam Kind] + [Tak]</code>
                 </span>
               </div>
-              <CopyButton text="BE59736064132626" className="btn btn-secondary" style={{ padding: '10px 20px', fontSize: '0.92rem' }}>
-                Kopiëer IBAN
-              </CopyButton>
+              <ProtectedIBAN className="btn btn-secondary" buttonStyle={{ padding: '10px 20px', fontSize: '0.92rem' }} />
             </div>
 
             <div style={{ backgroundColor: 'rgba(101, 11, 25, 0.04)', borderRadius: 'var(--border-radius-sm)', padding: '12px 16px', borderLeft: '4px solid var(--color-primary)' }}>
@@ -560,9 +558,7 @@ export default function InschrijvenClient({ email, year: _year }: Props) {
                   <strong>Begunstigde:</strong> Scouts Kriko-M &nbsp;|&nbsp; <strong>Vermelding:</strong> <code>[Naam Kind] + [Tak]</code>
                 </span>
               </div>
-              <CopyButton text="BE59736064132626" className="btn btn-secondary" style={{ padding: '10px 20px', fontSize: '0.9rem' }}>
-                Kopiëer IBAN
-              </CopyButton>
+              <ProtectedIBAN className="btn btn-secondary" buttonStyle={{ padding: '10px 20px', fontSize: '0.9rem' }} />
             </div>
           </div>
 

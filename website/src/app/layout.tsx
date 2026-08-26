@@ -56,7 +56,11 @@ const jsonLd = {
   "logo": "https://www.kriko-m.be/images/logo-finaal.png",
   "image": "https://www.kriko-m.be/images/logo-finaal.png",
   "description": "Scouts Kriko-M uit Sint-Niklaas — jeugdbeweging voor kapoenen, welpen, jonggivers en givers.",
-  "email": "groepsleiding@kriko-m.be",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "contactType": "Algemene inlichtingen",
+    "url": "https://www.kriko-m.be/contact"
+  },
   "taxID": "BE0409.040.288",
   "address": {
     "@type": "PostalAddress",

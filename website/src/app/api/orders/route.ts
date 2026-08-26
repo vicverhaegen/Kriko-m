@@ -11,10 +11,16 @@ function generateCommunication(orderNumber: number): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { customer_name, child_name, child_tak, email, cart, website } = body
+    const { customer_name, child_name, child_tak, email, cart, website, _t } = body
 
     // Honeypot — bots vullen dit verborgen veld in; mensen niet.
     if (typeof website === 'string' && website.trim() !== '') {
+      return NextResponse.json({ ok: true }, { status: 200 })
+    }
+
+    // Bot-bescherming: als de bestelling binnen 1.5 seconde is ingediend (of _t ontbreekt), behandel als bot
+    const timestamp = Number(_t)
+    if (!timestamp || Date.now() - timestamp < 1500) {
       return NextResponse.json({ ok: true }, { status: 200 })
     }
 

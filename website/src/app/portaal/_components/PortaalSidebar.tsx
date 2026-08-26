@@ -34,18 +34,7 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
     : 'Leiding'
 
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false)
-  const [showAccountsModal, setShowAccountsModal] = useState(false)
   const [displayName, setDisplayName] = useState(naam)
-
-  // Account Management State (Groepsleiding)
-  const [accounts, setAccounts] = useState<AccountInfo[]>([])
-  const [loadingAccounts, setLoadingAccounts] = useState(false)
-  const [editingRole, setEditingRole] = useState<'leiding' | 'groepsleiding' | 'webshop'>('leiding')
-  const [editName, setEditName] = useState('')
-  const [editPassword, setEditPassword] = useState('')
-  const [savingAccount, setSavingAccount] = useState(false)
-  const [modalError, setModalError] = useState('')
-  const [modalSuccess, setModalSuccess] = useState('')
 
   const onCloseMobileRef = useRef(onCloseMobile)
   useEffect(() => {
@@ -89,73 +78,6 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
     try { localStorage.removeItem('kriko_cart') } catch {}
     router.push('/portaal')
     router.refresh()
-  }
-
-  async function openAccountModal() {
-    setProfileDropdownOpen(false)
-    setShowAccountsModal(true)
-    setLoadingAccounts(true)
-    setModalError('')
-    setModalSuccess('')
-
-    try {
-      const res = await fetch('/api/admin/accounts')
-      const data = await res.json()
-      if (data.accounts) {
-        setAccounts(data.accounts)
-        const target = data.accounts.find((a: AccountInfo) => a.role === editingRole)
-        if (target) setEditName(target.naam)
-      }
-    } catch {
-      setModalError('Kon accountgegevens niet laden.')
-    } finally {
-      setLoadingAccounts(false)
-    }
-  }
-
-  function handleSelectRoleToEdit(roleType: 'leiding' | 'groepsleiding' | 'webshop') {
-    setEditingRole(roleType)
-    setEditPassword('')
-    setModalError('')
-    setModalSuccess('')
-    const target = accounts.find(a => a.role === roleType)
-    if (target) setEditName(target.naam)
-  }
-
-  async function handleSaveAccount(e: React.FormEvent) {
-    e.preventDefault()
-    setSavingAccount(true)
-    setModalError('')
-    setModalSuccess('')
-
-    try {
-      const res = await fetch('/api/admin/accounts', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          role: editingRole,
-          newName: editName,
-          newPassword: editPassword || undefined,
-        }),
-      })
-
-      const data = await res.json()
-      if (!res.ok || data.error) {
-        setModalError(data.error || 'Fout bij opslaan van account.')
-      } else {
-        const roleLbl = editingRole === 'leiding' ? 'Leiding' : editingRole === 'groepsleiding' ? 'Groepsleiding' : 'Webshop & uniformen'
-        setModalSuccess(`Account voor ${roleLbl} succesvol bijgewerkt!`)
-        setEditPassword('')
-        const listRes = await fetch('/api/admin/accounts')
-        const listData = await listRes.json()
-        if (listData.accounts) setAccounts(listData.accounts)
-        router.refresh()
-      }
-    } catch {
-      setModalError('Netwerkfout bij opslaan.')
-    } finally {
-      setSavingAccount(false)
-    }
   }
 
   // Navigation Items (REMOVED 'Overzicht' as requested, clicking top-left brand goes to /portaal/home!)
@@ -466,8 +388,9 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
                       {/* Actions List */}
                       <div style={{ padding: '8px' }}>
                         {isGroepsleiding && (
-                          <button
-                            onClick={openAccountModal}
+                          <Link
+                            href="/portaal/website-beheer?tab=instellingen"
+                            onClick={() => setProfileDropdownOpen(false)}
                             className="portaal-dropdown-btn"
                             style={{
                               width: '100%',
@@ -483,6 +406,8 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
                               fontSize: '0.88rem',
                               cursor: 'pointer',
                               textAlign: 'left',
+                              textDecoration: 'none',
+                              boxSizing: 'border-box',
                               transition: 'all 0.15s ease',
                             }}
                           >
@@ -501,7 +426,7 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
                               <i className="fa-solid fa-users-gear"></i>
                             </div>
                             <span>Accountbeheer</span>
-                          </button>
+                          </Link>
                         )}
 
                         <button
@@ -578,144 +503,6 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
           )
         })()}
       </aside>
-
-      {/* Account Management Modal for Groepsleiding */}
-      {showAccountsModal && (
-        <div className="portaal-modal-overlay">
-          <div className="portaal-modal-card" style={{ maxWidth: 540 }}>
-            <div className="portaal-modal-header" style={{ borderBottom: '1px solid #D9D9D9' }}>
-              <h3 className="portaal-modal-title" style={{ color: '#162544', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
-                👥 Accountbeheer — Rollen &amp; Wachtwoorden
-              </h3>
-              <button className="portaal-modal-close" onClick={() => setShowAccountsModal(false)}>&times;</button>
-            </div>
-            
-            {loadingAccounts ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#666', fontWeight: 600 }}>Accounts laden…</div>
-            ) : (
-              <form onSubmit={handleSaveAccount}>
-                <div className="portaal-modal-body" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                  {modalError && <div className="portaal-modal-alert error">{modalError}</div>}
-                  {modalSuccess && <div className="portaal-modal-alert success">{modalSuccess}</div>}
-
-                  <div style={{ fontSize: '0.86rem', color: '#666' }}>
-                    Selecteer hieronder het account dat je wilt bewerken (naam of wachtwoord aanpassen):
-                  </div>
-
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectRoleToEdit('leiding')}
-                      style={{
-                        padding: '10px 6px',
-                        borderRadius: 10,
-                        border: editingRole === 'leiding' ? '2px solid #243B6B' : '1px solid #D9D9D9',
-                        background: editingRole === 'leiding' ? '#EBF0F9' : '#FFFFFF',
-                        color: editingRole === 'leiding' ? '#243B6B' : '#1A1A1A',
-                        fontWeight: editingRole === 'leiding' ? 800 : 600,
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        fontSize: '0.85rem',
-                      }}
-                    >
-                      Leiding
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectRoleToEdit('groepsleiding')}
-                      style={{
-                        padding: '10px 6px',
-                        borderRadius: 10,
-                        border: editingRole === 'groepsleiding' ? '2px solid #243B6B' : '1px solid #D9D9D9',
-                        background: editingRole === 'groepsleiding' ? '#EBF0F9' : '#FFFFFF',
-                        color: editingRole === 'groepsleiding' ? '#243B6B' : '#1A1A1A',
-                        fontWeight: editingRole === 'groepsleiding' ? 800 : 600,
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        fontSize: '0.85rem',
-                      }}
-                    >
-                      Groepsleiding
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectRoleToEdit('webshop')}
-                      style={{
-                        padding: '10px 6px',
-                        borderRadius: 10,
-                        border: editingRole === 'webshop' ? '2px solid #243B6B' : '1px solid #D9D9D9',
-                        background: editingRole === 'webshop' ? '#EBF0F9' : '#FFFFFF',
-                        color: editingRole === 'webshop' ? '#243B6B' : '#1A1A1A',
-                        fontWeight: editingRole === 'webshop' ? 800 : 600,
-                        cursor: 'pointer',
-                        textAlign: 'center',
-                        fontSize: '0.85rem',
-                      }}
-                    >
-                      Webshop
-                    </button>
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Weergavenaam voor {editingRole === 'leiding' ? 'Leiding' : editingRole === 'groepsleiding' ? 'Groepsleiding' : 'Webshop & uniformen'}:</label>
-                    <input
-                      type="text"
-                      className="form-control"
-                      value={editName}
-                      onChange={(e) => setEditName(e.target.value)}
-                      required
-                      placeholder="Bijv. Leiding Kriko-M"
-                      disabled={savingAccount}
-                      style={{ borderRadius: 8, borderColor: '#D9D9D9' }}
-                    />
-                  </div>
-
-                  <div className="form-group" style={{ marginBottom: 0 }}>
-                    <label className="form-label">Nieuw Wachtwoord (laat leeg om ongewijzigd te laten):</label>
-                    <input
-                      type="password"
-                      className="form-control"
-                      value={editPassword}
-                      onChange={(e) => setEditPassword(e.target.value)}
-                      placeholder="Nieuw wachtwoord (minstens 6 tekens)"
-                      disabled={savingAccount}
-                      style={{ borderRadius: 8, borderColor: '#D9D9D9' }}
-                    />
-                  </div>
-                </div>
-
-                <div className="portaal-modal-footer" style={{ borderTop: '1px solid #D9D9D9' }}>
-                  <button
-                    type="button"
-                    className="btn btn-outline"
-                    onClick={() => setShowAccountsModal(false)}
-                    disabled={savingAccount}
-                    style={{ padding: '8px 16px', fontSize: '0.9rem', borderRadius: 8, borderColor: '#D9D9D9', color: '#1A1A1A' }}
-                  >
-                    Sluiten
-                  </button>
-                  <button
-                    type="submit"
-                    disabled={savingAccount || !editName.trim()}
-                    style={{
-                      padding: '8px 20px',
-                      fontSize: '0.9rem',
-                      borderRadius: 8,
-                      background: '#162544',
-                      color: '#FFFFFF',
-                      border: 'none',
-                      fontWeight: 700,
-                      cursor: 'pointer',
-                    }}
-                  >
-                    {savingAccount ? 'Opslaan…' : 'Wijzigingen Opslaan'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        </div>
-      )}
     </>
   )
 }
