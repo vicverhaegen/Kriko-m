@@ -645,7 +645,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
           calendarName={isGroepsleiding ? "Scouts Kriko-M — Groepsleiding" : "Scouts Kriko-M — Leiding"}
           buttonText="Abonneer"
           buttonClassName=""
-          buttonStyle={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: isGroepsleiding ? '#1E7E52' : '#243B6B', border: 'none', borderRadius: 10, color: '#FFFFFF', fontSize: '.78rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: isGroepsleiding ? '0 2px 6px rgba(30,126,82,0.25)' : '0 2px 6px rgba(36,59,107,0.2)', flexShrink: 0, whiteSpace: 'nowrap' }}
+          buttonStyle={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#243B6B', border: 'none', borderRadius: 10, color: '#FFFFFF', fontSize: '.78rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 2px 6px rgba(36,59,107,0.2)', flexShrink: 0, whiteSpace: 'nowrap' }}
         />
       </div>
     )
