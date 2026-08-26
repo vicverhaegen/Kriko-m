@@ -43,9 +43,9 @@ export const TAK_KLEUREN: Record<string, string> = {
 }
 
 // Audience-tags voor kalender én kampen (wie de activiteit betreft).
-// 'groep' = de enige tag die iets publiek op de website-kalender zet (enkel
-// groepsleiding mag hem toekennen).
-export const AUDIENCE_TAGS = ['groep', 'leiding', 'kapoenen', 'welpen', 'jonggivers', 'givers'] as const
+// 'groep' = publiek op de website-kalender (enkel groepsleiding mag toekennen).
+// 'grl'   = exclusief voor groepsleiding (verborgen voor gewone leiding).
+export const AUDIENCE_TAGS = ['groep', 'leiding', 'grl', 'kapoenen', 'welpen', 'jonggivers', 'givers'] as const
 export type AudienceTagConst = (typeof AUDIENCE_TAGS)[number]
 
 export const AUDIENCE_NAMEN: Record<string, string> = {
@@ -55,13 +55,15 @@ export const AUDIENCE_NAMEN: Record<string, string> = {
   jonggivers: 'Jonggivers',
   givers: 'Givers',
   groep: 'Groep',
+  grl: 'GRL',
 }
 
-// Kleuren per audience-tag (hergebruikt TAK_KLEUREN + leiding/groep).
+// Kleuren per audience-tag (hergebruikt TAK_KLEUREN + leiding/groep/grl).
 export const AUDIENCE_KLEUREN: Record<string, string> = {
   ...TAK_KLEUREN,
   leiding: '#650B19', // bordeaux
   groep: '#C9963A',   // goud
+  grl: '#1E7E52',     // groen (GRL)
 }
 
 // Kleuren per audience-tag specifiek voor het leidingsportaal
@@ -69,6 +71,7 @@ export const PORTAAL_AUDIENCE_KLEUREN: Record<string, string> = {
   ...TAK_KLEUREN,
   groep: '#650B19',   // bordeaux (Groep in leidingsportaal)
   leiding: '#243B6B', // donkerblauw (Leiding in leidingsportaal)
+  grl: '#1E7E52',     // groen (GRL)
 }
 
 export const MAANDEN: Record<number, string> = {

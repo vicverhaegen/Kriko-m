@@ -32,11 +32,13 @@ export async function PATCH(
 
   const touchesPublic =
     resultingAudience.includes('groep') || (existing.audience ?? []).includes('groep')
+  const touchesGrl =
+    resultingAudience.includes('grl') || (existing.audience ?? []).includes('grl')
 
-  // Publieke events (groep tag) mogen enkel door groepsleiding bewerkt worden.
-  if (touchesPublic) {
+  // Publieke events (groep tag) en groepsleiding-events (grl tag) mogen enkel door groepsleiding bewerkt worden.
+  if (touchesPublic || touchesGrl) {
     const gl = await requireGroepsleiding()
-    if (!gl) return NextResponse.json({ error: 'Enkel groepsleiding kan publieke events bewerken.' }, { status: 403 })
+    if (!gl) return NextResponse.json({ error: 'Enkel groepsleiding kan publieke of GRL-events bewerken.' }, { status: 403 })
   }
 
   const STRING_NOT_NULL_KEYS = new Set([
@@ -95,15 +97,16 @@ export async function DELETE(
   const { id } = await params
   const admin = createAdminClient()
 
-  // Bestaand event ophalen: publieke events mogen enkel door groepsleiding verwijderd worden.
+  // Bestaand event ophalen: publieke events en GRL-events mogen enkel door groepsleiding verwijderd worden.
   const { data: existing } = await admin
     .from('calendar')
     .select('audience, is_evenement')
     .eq('id', id)
     .single()
-  if (existing && (existing.audience ?? []).includes('groep')) {
+  const existingAudience = existing?.audience ?? []
+  if (existing && (existingAudience.includes('groep') || existingAudience.includes('grl'))) {
     const gl = await requireGroepsleiding()
-    if (!gl) return NextResponse.json({ error: 'Enkel groepsleiding kan publieke events verwijderen.' }, { status: 403 })
+    if (!gl) return NextResponse.json({ error: 'Enkel groepsleiding kan publieke of GRL-events verwijderen.' }, { status: 403 })
   }
 
   const { error } = await admin.from('calendar').delete().eq('id', id)

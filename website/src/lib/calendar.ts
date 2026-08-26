@@ -28,10 +28,11 @@ export function eventToEntry(ev: CalendarEvent): CalendarEntry {
   return { ...ev, source: 'event' }
 }
 
-export type AudienceTag = 'groep' | 'leiding' | 'kapoenen' | 'welpen' | 'jonggivers' | 'givers'
+export type AudienceTag = 'groep' | 'grl' | 'leiding' | 'kapoenen' | 'welpen' | 'jonggivers' | 'givers'
 
 export const AUDIENCE_PRIORITY: AudienceTag[] = [
   'groep',
+  'grl',
   'leiding',
   'kapoenen',
   'welpen',

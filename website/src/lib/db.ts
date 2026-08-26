@@ -96,6 +96,18 @@ export async function getLeidingIcsToken(): Promise<string> {
   }
 }
 
+// Geheim token voor de private groepsleiding-ICS-feed (ongecachet — beveiligingswaarde).
+export async function getGroepsleidingIcsToken(): Promise<string> {
+  try {
+    const supabase = createAdminClient()
+    const { data } = await supabase.from('settings').select('groepsleiding_ics_token').eq('id', 1).single()
+    return data?.groepsleiding_ics_token ?? ''
+  } catch (err) {
+    console.error('getGroepsleidingIcsToken exception:', err)
+    return ''
+  }
+}
+
 export const getEchos = unstable_cache(
   async () => {
     try {

@@ -8,11 +8,11 @@ import { revalidateTag } from 'next/cache'
 const VALID_AUDIENCE = new Set<string>(AUDIENCE_TAGS)
 
 // Schoont en valideert de audience-tags en past de rechten toe. Enkel
-// groepsleiding mag publiceren naar 'groep' (publiek).
+// groepsleiding mag publiceren naar 'groep' (publiek) of 'grl' (groepsleiding).
 function sanitizeAudience(raw: unknown, isGroepsleiding: boolean) {
   let audience = Array.isArray(raw) ? raw.filter(a => VALID_AUDIENCE.has(a)) : []
   if (!isGroepsleiding) {
-    audience = audience.filter(a => a !== 'groep') // gewone leiding mag niet publiek publiceren
+    audience = audience.filter(a => a !== 'groep' && a !== 'grl') // gewone leiding mag niet publiek publiceren of GRL taggen
   }
   // Dedupe
   audience = [...new Set(audience)]
@@ -25,12 +25,13 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
   const wantsPublic = Array.isArray(body.audience) && body.audience.includes('groep')
+  const wantsGrl = Array.isArray(body.audience) && body.audience.includes('grl')
 
-  // Publiek publiceren naar ouderagenda = enkel groepsleiding.
+  // Publiek publiceren naar ouderagenda of GRL agenda = enkel groepsleiding.
   let isGroepsleiding = false
-  if (wantsPublic) {
+  if (wantsPublic || wantsGrl) {
     const gl = await requireGroepsleiding()
-    if (!gl) return NextResponse.json({ error: 'Enkel groepsleiding kan publiceren naar de ouderagenda.' }, { status: 403 })
+    if (!gl) return NextResponse.json({ error: 'Enkel groepsleiding kan publiceren naar de ouderagenda of GRL-agenda.' }, { status: 403 })
     isGroepsleiding = true
   }
 

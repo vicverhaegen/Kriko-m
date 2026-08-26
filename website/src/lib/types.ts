@@ -42,6 +42,8 @@ export interface Settings {
   takken: Record<string, TakConfig>
   // Geheim token voor de private leiding-ICS-feed (zie /api/leiding/ics).
   leiding_ics_token?: string
+  // Geheim token voor de private groepsleiding-ICS-feed (zie /api/groepsleiding/ics).
+  groepsleiding_ics_token?: string
   // Per-tak portaalachtergrond-configuratie (zie /api/admin/portal-backgrounds).
   portal_backgrounds?: Record<string, { style: string; custom_url?: string | null }>
 }
@@ -67,8 +69,8 @@ export interface Leader {
 }
 
 // Audience-tags bepalen de zichtbaarheid: een event met 'groep' is publiek
-// (website-kalender); alle events zijn zichtbaar in de leidingcalender.
-export type AudienceTag = 'leiding' | 'kapoenen' | 'welpen' | 'jonggivers' | 'givers' | 'groep'
+// (website-kalender); 'grl' is enkel voor groepsleiding; overige zijn leiding-breed.
+export type AudienceTag = 'leiding' | 'kapoenen' | 'welpen' | 'jonggivers' | 'givers' | 'groep' | 'grl'
 
 export interface CalendarEvent {
   id: string

@@ -70,7 +70,9 @@ export default function KalenderActiviteitModal({
     setMounted(true)
   }, [])
 
-  const selectableTags: AudienceTag[] = canPublish ? [...AUDIENCE_TAGS] : AUDIENCE_TAGS.filter(t => t !== 'groep')
+  const selectableTags: AudienceTag[] = canPublish
+    ? [...AUDIENCE_TAGS]
+    : AUDIENCE_TAGS.filter(t => t !== 'groep' && t !== 'grl')
 
   function toggleAudience(tag: AudienceTag) {
     setForm(p => {

@@ -17,6 +17,7 @@ interface Props {
   initialCalendar: CalendarEvent[]
   highlightTak?: string
   canPublish: boolean
+  isGroepsleiding?: boolean
   icsToken: string
   readOnly?: boolean
   twoColumn?: boolean
@@ -32,7 +33,7 @@ function toLocalDateStr(d: Date): string {
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`
 }
 
-export default function LeidingCalendar({ initialCalendar, highlightTak, canPublish, icsToken, readOnly, twoColumn = false }: Props) {
+export default function LeidingCalendar({ initialCalendar, highlightTak, canPublish, isGroepsleiding = false, icsToken, readOnly, twoColumn = false }: Props) {
   const today = new Date()
   const searchParams = useSearchParams()
   const [events, setEvents] = useState<CalendarEvent[]>(initialCalendar)
@@ -155,8 +156,9 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
       <span className="cal-tag-chips-wrap">
         {tags.map(t => {
           const isYellow = t === 'kapoenen'
-          const tagBg = isYellow ? '#FEF3D6' : `${PORTAAL_AUDIENCE_KLEUREN[t]}1E`
-          const tagColor = isYellow ? '#8C6700' : PORTAAL_AUDIENCE_KLEUREN[t]
+          const isGrl = t === 'grl'
+          const tagBg = isYellow ? '#FEF3D6' : isGrl ? '#E6F4ED' : `${PORTAAL_AUDIENCE_KLEUREN[t]}1E`
+          const tagColor = isYellow ? '#8C6700' : isGrl ? '#1E7E52' : PORTAAL_AUDIENCE_KLEUREN[t]
           return (
             <span key={t} style={{
               padding: compact ? '2px 7px' : '2px 9px',
@@ -167,7 +169,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
               letterSpacing: '0.4px',
               background: tagBg,
               color: tagColor,
-              border: 'none',
+              border: isGrl ? '1px solid #B4DEC7' : 'none',
               lineHeight: 1.3,
               whiteSpace: 'nowrap',
             }}>
@@ -182,14 +184,21 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
   // ─── Calendar Grid Component ───────────────────────────────────────────────
   function CalendarGrid() {
     const todayStr = toLocalDateStr(today)
+    const numWeeks = Math.ceil(calGrid.length / 7)
+    const cardHeightStyle = numWeeks < 6
+      ? `calc((100% - 70px) * ${numWeeks} / 6 + 70px)`
+      : '100%'
 
     return (
-      <div style={{ background: '#fff', borderRadius: 18, border: 'none', overflow: 'hidden', boxShadow: '0 10px 32px rgba(0,0,0,0.16)', width: '100%', maxWidth: '100%', boxSizing: 'border-box' }}>
+      <div
+        className="portal-cal-grid-card"
+        style={{ '--cal-card-height': cardHeightStyle } as React.CSSProperties}
+      >
         {/* Bordeaux header bar */}
-        <div className="portal-cal-header-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', background: '#243B6B', color: '#fff', flexWrap: 'wrap', gap: 8 }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 0 }}>
-            <h2 className="cal-grid-month-title" style={{ color: '#fff', fontSize: 'clamp(1.1rem, 3.8vw, 1.45rem)', margin: 0, fontWeight: 800, fontFamily: 'var(--font-heading, Nunito, sans-serif)', display: 'flex', alignItems: 'center', gap: 6 }}>
-              <i className="fa-regular fa-calendar-days" style={{ fontSize: '1.15rem' }}></i> {MAANDEN[calMonth + 1]} {calYear}
+        <div className="portal-cal-header-bar" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 14px', background: '#243B6B', color: '#fff', flexWrap: 'wrap', gap: 6 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6, minWidth: 0 }}>
+            <h2 className="cal-grid-month-title" style={{ color: '#fff', fontSize: 'clamp(1.05rem, 2.5vw, 1.3rem)', margin: 0, fontWeight: 800, fontFamily: 'var(--font-heading, Nunito, sans-serif)', display: 'flex', alignItems: 'center', gap: 6 }}>
+              <i className="fa-regular fa-calendar-days" style={{ fontSize: '1.05rem' }}></i> {MAANDEN[calMonth + 1]} {calYear}
             </h2>
           </div>
 
@@ -377,6 +386,10 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
         return isImportant
           ? { bg: '#650B19', border: 'none', dayColor: '#FFFFFF', monthColor: '#F9EBEF' }
           : { bg: '#F9EBEF', border: '#E8BDC7', dayColor: '#650B19', monthColor: '#8C182B' }
+      case 'grl':
+        return isImportant
+          ? { bg: '#1E7E52', border: 'none', dayColor: '#FFFFFF', monthColor: '#E6F4ED' }
+          : { bg: '#E6F4ED', border: '#B4DEC7', dayColor: '#1E7E52', monthColor: '#145A3A' }
       case 'leiding':
       default:
         return isImportant
@@ -545,10 +558,14 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
     )
   }
   function FilterBar() {
+    const mainTags = isGroepsleiding || canPublish
+      ? (['groep', 'leiding', 'grl'] as const)
+      : (['groep', 'leiding'] as const)
+
     return (
       <div className="cal-filter-bar-wrap" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 10, marginBottom: 16, minHeight: 34, flexWrap: 'wrap' }}>
         <div className="cal-filter-tags-scroll-row" style={{ display: 'flex', gap: 5, alignItems: 'center', overflowX: 'auto', maxWidth: '100%', WebkitOverflowScrolling: 'touch', paddingBottom: 2 }}>
-          {(['groep', 'leiding'] as const).map(tag => {
+          {mainTags.map(tag => {
             const isActive = filter.has(tag)
             const tagColor = PORTAAL_AUDIENCE_KLEUREN[tag]
             return (
@@ -624,11 +641,11 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
           )}
         </div>
         <SubscribeCalendarButton
-          feedPath={`/api/leiding/ics/${icsToken}`}
-          calendarName="Scouts Kriko-M — Leiding"
+          feedPath={isGroepsleiding ? `/api/groepsleiding/ics/${icsToken}` : `/api/leiding/ics/${icsToken}`}
+          calendarName={isGroepsleiding ? "Scouts Kriko-M — Groepsleiding" : "Scouts Kriko-M — Leiding"}
           buttonText="Abonneer"
           buttonClassName=""
-          buttonStyle={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: '#243B6B', border: 'none', borderRadius: 10, color: '#FFFFFF', fontSize: '.78rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 2px 6px rgba(36,59,107,0.2)', flexShrink: 0, whiteSpace: 'nowrap' }}
+          buttonStyle={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '6px 12px', background: isGroepsleiding ? '#1E7E52' : '#243B6B', border: 'none', borderRadius: 10, color: '#FFFFFF', fontSize: '.78rem', fontWeight: 800, cursor: 'pointer', fontFamily: 'inherit', boxShadow: isGroepsleiding ? '0 2px 6px rgba(30,126,82,0.25)' : '0 2px 6px rgba(36,59,107,0.2)', flexShrink: 0, whiteSpace: 'nowrap' }}
         />
       </div>
     )
@@ -636,9 +653,9 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
 
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
-    <div>
+    <div className="portal-agenda-container-root">
       {flash && !showForm && (
-        <div style={{ background: '#FFFFFF', border: '1px solid #243B6B', color: '#243B6B', padding: '12px 18px', borderRadius: 12, marginBottom: 16, fontWeight: 700, boxShadow: '0 2px 8px rgba(107,23,36,0.1)' }}>
+        <div style={{ background: '#FFFFFF', border: '1px solid #243B6B', color: '#243B6B', padding: '12px 18px', borderRadius: 12, marginBottom: 14, fontWeight: 700, boxShadow: '0 2px 8px rgba(107,23,36,0.1)', flexShrink: 0 }}>
           {flash}
         </div>
       )}
@@ -657,7 +674,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
           >
             {FilterBar()}
             {selectedDate && (
-              <div style={{ marginBottom: 12, padding: '8px 14px', background: '#EBF0F9', border: '1.5px solid #D0DCEE', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
+              <div style={{ marginBottom: 12, padding: '8px 14px', background: '#EBF0F9', border: '1.5px solid #D0DCEE', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexShrink: 0 }}>
                 <span style={{ fontSize: '.84rem', fontWeight: 800, color: '#162544' }}>
                   Geselecteerde dag: {(() => { const d = new Date(selectedDate); return `${d.getDate()} ${MAANDEN[d.getMonth() + 1]} ${d.getFullYear()}` })()}
                 </span>
@@ -666,12 +683,14 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                 </button>
               </div>
             )}
-            {CalendarGrid()}
+            <div className="portal-cal-card-wrapper">
+              {CalendarGrid()}
+            </div>
           </div>
 
           {/* Right: activity list */}
           <div className="portal-agenda-right-column" ref={rightColumnRef}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, minHeight: 34, gap: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16, minHeight: 34, gap: 8, flexShrink: 0 }}>
               <h3 style={{ fontSize: '1.25rem', fontWeight: 900, color: '#162544', margin: 0, fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
                 {selectedDate ? 'Activiteiten op deze dag' : 'Activiteiten'}
               </h3>
@@ -682,7 +701,9 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                 </button>
               )}
             </div>
-            {ActivityList({ listEntries: rightEntries })}
+            <div className="portal-agenda-right-list">
+              {ActivityList({ listEntries: rightEntries })}
+            </div>
           </div>
         </div>
       ) : (
@@ -727,7 +748,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
           isPortal={true}
           onClose={() => setActiveViewEvent(null)}
           onEdit={
-            !readOnly && !(!canPublish && activeViewEvent.audience.includes('groep'))
+            !readOnly && !(canPublish ? false : (activeViewEvent.audience.includes('groep') || activeViewEvent.audience.includes('grl')))
               ? () => {
                   setEditId(activeViewEvent.id)
                   setShowForm(true)

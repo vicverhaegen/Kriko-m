@@ -15,24 +15,33 @@ export default async function FullAgendaPage() {
   const isLeiding = role === 'admin' || role === 'groepsleiding' || role === 'leiding'
   if (!isLeiding) redirect('/portaal')
 
+  const isGroepsleiding = role === 'admin' || role === 'groepsleiding'
   const admin = createAdminClient()
   const [authRes, calendarRes, settingsRes] = await Promise.all([
     supabase.auth.getUser(),
     admin.from('calendar').select('*').order('date', { ascending: true }),
-    admin.from('settings').select('leiding_ics_token').eq('id', 1).single(),
+    admin.from('settings').select('leiding_ics_token, groepsleiding_ics_token').eq('id', 1).single(),
   ])
 
   if (authRes.error || !authRes.data.user) redirect('/portaal')
 
-  const calendarEvents = (calendarRes.data ?? []) as CalendarEvent[]
-  const icsToken = (settingsRes.data?.leiding_ics_token ?? '') as string
-  const canPublish = role === 'admin' || role === 'groepsleiding'
+  let calendarEvents = (calendarRes.data ?? []) as CalendarEvent[]
+  // Gewone leiding mag géén GRL-activiteiten zien
+  if (!isGroepsleiding) {
+    calendarEvents = calendarEvents.filter(e => !(e.audience ?? []).includes('grl'))
+  }
+
+  const icsToken = (isGroepsleiding
+    ? (settingsRes.data?.groepsleiding_ics_token || settingsRes.data?.leiding_ics_token || '')
+    : (settingsRes.data?.leiding_ics_token || '')) as string
+  const canPublish = isGroepsleiding
 
   return (
-    <div style={{ maxWidth: 1440, margin: '0 auto', width: '100%', padding: '24px 20px 24px', boxSizing: 'border-box' }} className="portaal-page-container">
+    <div className="portaal-page-container portaal-agenda-page-container">
       <LeidingCalendar
         initialCalendar={calendarEvents}
         canPublish={canPublish}
+        isGroepsleiding={isGroepsleiding}
         icsToken={icsToken}
         twoColumn={true}
       />

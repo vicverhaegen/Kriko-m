@@ -95,13 +95,17 @@ Always use these colors and fonts to keep the UI consistent and professional.
    * The navigation links in `PortaalNav` scroll horizontally on mobile screens using `flex-nowrap` and `overflow-x-auto`. Keep it this way; do not wrap them or hide them behind hamburgers.
 7. **Responsive Layouts:**
    * Use `.portal-grid-layout` (which drops from 2-column `1fr 3fr` to 1-column layout on media query max-width 768px) instead of inline styles for main portal layouts like `LeidingPanel.tsx`.
-8. **Calendar system — audience tags:**
-   * One `calendar` table; visibility is derived from the `audience TEXT[]` column. An event is **public** (oudercalender) iff it carries the `'ouders'` tag. All events are visible to logged-in leiding.
-   * Valid audience tags: `leiding | kapoenen | welpen | jonggivers | givers | ouders` — enforced by a DB CHECK constraint and the `AudienceTag` TypeScript type.
-   * Publishing to `ouders` or creating `is_evenement = true` requires `requireGroepsleiding()` — guarded in both the API (`/api/admin/calendar`) and the `LeidingCalendar` UI.
-   * The private leiding ICS feed (`/api/leiding/ics?token=<token>`) is token-gated via `settings.leiding_ics_token`; calendar apps subscribe anonymously so no login cookie is available — do not change this to cookie auth.
-   * Kampen/weekenden appear in the leiding calendar as auto-derived read-only entries (source `'kamp'`) merged in `website/src/lib/calendar.ts`. Edit them via the kampen admin, not the calendar form.
-   * Shared ICS helpers live in `website/src/lib/ics.ts` — both the public feed and the leiding feed import from there.
+8. **Calendar system — 3 agendas & audience tags:**
+   * One `calendar` table; visibility is derived from the `audience TEXT[]` column.
+   * Three distinct agendas:
+     1. **Publiek / Ouders:** events tagged with `'groep'`. Visible on website and `/api/kalender/ics`.
+     2. **Leiding:** all events except `'grl'`. Visible in portal for leiding and private feed `/api/leiding/ics/[token]`.
+     3. **Groepsleiding:** all events including `'grl'`. Visible in portal for groepsleiding and private feed `/api/groepsleiding/ics/[token]`.
+   * Valid audience tags: `leiding | kapoenen | welpen | jonggivers | givers | groep | grl` — enforced by DB CHECK constraint and `AudienceTag` TypeScript type.
+   * Tagging `'groep'` or `'grl'` or editing those events requires `requireGroepsleiding()` — guarded in both the API (`/api/admin/calendar`) and the `LeidingCalendar` UI. Regular leiding cannot see or select `'grl'`.
+   * The private leiding ICS feed (`/api/leiding/ics/[token]`) is token-gated via `settings.leiding_ics_token`.
+   * The private groepsleiding ICS feed (`/api/groepsleiding/ics/[token]`) is token-gated via `settings.groepsleiding_ics_token`.
+   * Shared ICS helpers live in `website/src/lib/ics.ts`.
 
 ---
 

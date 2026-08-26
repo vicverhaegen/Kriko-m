@@ -1,10 +1,11 @@
 import { NextRequest } from 'next/server'
-import { getAllCalendarEvents, getLeidingIcsToken } from '@/lib/db'
+import { getAllCalendarEvents, getGroepsleidingIcsToken } from '@/lib/db'
 import { CalendarEvent } from '@/lib/types'
 import { AUDIENCE_NAMEN } from '@/lib/constants'
 import { IcsEvent, icsHeader, buildEventVevent, foldIcsLine } from '@/lib/ics'
 
-// Private leiding-feed: ALLE events. Beveiligd met een geheim token in de URL.
+// Private groepsleiding-feed: ALLE events (inclusief GRL-activiteiten).
+// Beveiligd met een geheim groepsleiding-token in de URL.
 export async function GET(
   request: NextRequest,
   props: { params: Promise<{ token: string }> }
@@ -14,16 +15,14 @@ export async function GET(
     const { searchParams } = new URL(request.url)
     const download = searchParams.get('download') === '1' || searchParams.get('download') === 'true'
 
-    const validToken = await getLeidingIcsToken()
+    const validToken = await getGroepsleidingIcsToken()
     if (!validToken || token !== validToken) {
       return new Response('Geen toegang', { status: 403 })
     }
 
-    // Enkel events die NIET getagd zijn met 'grl' (GRL is strikt voor groepsleiding)
-    const allEvents = (await getAllCalendarEvents()) as CalendarEvent[]
-    const events = allEvents.filter(e => !(e.audience ?? []).includes('grl'))
+    const events = (await getAllCalendarEvents()) as CalendarEvent[]
 
-    const lines = icsHeader('Scouts Kriko-M — Leiding', 'Volledige leidingkalender en takactiviteiten van Scouts Kriko-M', '#162544')
+    const lines = icsHeader('Scouts Kriko-M — Groepsleiding', 'Volledige kalender inclusief groepsleiding (GRL) van Scouts Kriko-M', '#1E7E52')
     const nowStr = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z'
 
     for (const event of events) {
@@ -42,14 +41,14 @@ export async function GET(
     }
 
     if (download) {
-      headers['Content-Disposition'] = 'attachment; filename="kriko-m-leiding-kalender.ics"'
+      headers['Content-Disposition'] = 'attachment; filename="kriko-m-groepsleiding-kalender.ics"'
     } else {
       headers['Content-Disposition'] = 'inline'
     }
 
     return new Response(icsContent, { headers })
   } catch (error) {
-    console.error('Leiding ICS export error:', error)
+    console.error('Groepsleiding ICS export error:', error)
     return new Response('Server Error', { status: 500 })
   }
 }
