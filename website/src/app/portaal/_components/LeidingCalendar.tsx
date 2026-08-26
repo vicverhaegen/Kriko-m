@@ -387,7 +387,6 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
   function DateBox({
     date,
     datumTot,
-    isImportant = false,
     tag = 'leiding',
   }: {
     date: string
@@ -407,12 +406,12 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
 
     const boxStyle: React.CSSProperties = {
       flexShrink: 0,
-      width: isMultiDay && !sameMonth ? (isImportant ? 66 : 60) : (isImportant ? 58 : 52),
-      minHeight: isImportant ? 56 : 50,
+      width: isMultiDay && !sameMonth ? 62 : 54,
+      minHeight: 52,
       background: bg,
       borderRadius: 12,
       border: border && border !== 'none' ? `1.5px solid ${border}` : 'none',
-      padding: isImportant ? '7px 5px' : '5px 4px',
+      padding: '6px 4px',
       textAlign: 'center',
       display: 'flex',
       flexDirection: 'column',
@@ -425,10 +424,10 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
     if (!isMultiDay) {
       return (
         <div style={boxStyle}>
-          <span style={{ fontSize: isImportant ? 22 : 19, fontWeight: 900, color: dayColor, lineHeight: 1 }}>
+          <span style={{ fontSize: 20, fontWeight: 900, color: dayColor, lineHeight: 1 }}>
             {String(startDay).padStart(2, '0')}
           </span>
-          <span style={{ fontSize: isImportant ? 11.5 : 10.5, fontWeight: 700, color: monthColor, lineHeight: 1, textTransform: 'lowercase' }}>{startMaand}</span>
+          <span style={{ fontSize: 11, fontWeight: 700, color: monthColor, lineHeight: 1, textTransform: 'lowercase' }}>{startMaand}</span>
         </div>
       )
     }
@@ -440,17 +439,17 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
       <div style={boxStyle}>
         {sameMonth ? (
           <>
-            <span style={{ fontSize: isImportant ? 16 : 14.5, fontWeight: 900, color: dayColor, lineHeight: 1.1, letterSpacing: '-0.3px' }}>
+            <span style={{ fontSize: 15, fontWeight: 900, color: dayColor, lineHeight: 1.1, letterSpacing: '-0.3px' }}>
               {startDay}–{endDay}
             </span>
-            <span style={{ fontSize: isImportant ? 11.5 : 10.5, fontWeight: 700, color: monthColor, lineHeight: 1, textTransform: 'lowercase' }}>{startMaand}</span>
+            <span style={{ fontSize: 11, fontWeight: 700, color: monthColor, lineHeight: 1, textTransform: 'lowercase' }}>{startMaand}</span>
           </>
         ) : (
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
-            <span style={{ fontSize: isImportant ? 11.5 : 10.5, fontWeight: 800, color: dayColor, lineHeight: 1.15, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: dayColor, lineHeight: 1.15, whiteSpace: 'nowrap' }}>
               {startDay} {startMaand}
             </span>
-            <span style={{ fontSize: isImportant ? 11 : 10, fontWeight: 700, color: monthColor, lineHeight: 1.15, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 10.5, fontWeight: 700, color: monthColor, lineHeight: 1.15, whiteSpace: 'nowrap' }}>
               – {endDay} {endMaand}
             </span>
           </div>
@@ -471,20 +470,19 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
         {listEntries.map(ev => {
           const primaryTag = getPrimaryAudienceTag(ev.audience) as AudienceTag
           const highlighted = highlightTak ? ev.audience.includes(highlightTak as AudienceTag) : false
-          const isImportant = ev.is_evenement
           const isMultiDay = !!ev.datum_tot && ev.datum_tot !== ev.date
           const iconClass = getEventIcon(ev)
 
           return (
             <div
               key={ev.id}
-              className={`portal-activity-card${highlighted ? ' highlighted' : ''}${isImportant ? ' is-important-event' : ''}`}
+              className={`portal-activity-card${highlighted ? ' highlighted' : ''}`}
               style={{
                 background: '#fff',
                 borderRadius: 14,
-                padding: isImportant ? '16px 18px' : '13px 15px',
-                border: highlighted ? '2px solid #C9963A' : isImportant ? '1.5px solid #CBD5E1' : '1px solid #E2E8F0',
-                boxShadow: highlighted ? '0 4px 14px rgba(201,150,58,.22)' : isImportant ? '0 4px 14px rgba(0,0,0,0.07)' : '0 2px 6px rgba(0,0,0,0.03)',
+                padding: '14px 16px',
+                border: highlighted ? '2px solid #C9963A' : '1px solid #D9D9D9',
+                boxShadow: highlighted ? '0 4px 14px rgba(201,150,58,.22)' : '0 2px 8px rgba(0,0,0,0.04)',
                 cursor: 'pointer',
                 transition: 'all 0.15s ease',
                 width: '100%',
@@ -494,12 +492,12 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
               }}
               onClick={() => setActiveViewEvent(ev)}
             >
-              <div className="portal-activity-card-inner" style={{ minWidth: 0, width: '100%', gap: isImportant ? 16 : 14 }}>
-                <DateBox date={ev.date} datumTot={ev.datum_tot || undefined} isImportant={isImportant} tag={primaryTag} />
+              <div className="portal-activity-card-inner" style={{ minWidth: 0, width: '100%' }}>
+                <DateBox date={ev.date} datumTot={ev.datum_tot || undefined} tag={primaryTag} />
                 
                 <div style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <strong style={{
-                    fontSize: isImportant ? '1.24rem' : '1.1rem',
+                    fontSize: '1.15rem',
                     fontWeight: 900,
                     color: '#162544',
                     fontFamily: 'var(--font-heading, Nunito, sans-serif)',
@@ -511,11 +509,11 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                     wordBreak: 'break-word',
                     overflowWrap: 'anywhere',
                   }}>
-                    {iconClass ? <i className={`fa-solid ${iconClass}`} style={{ color: '#2B4C8C', fontSize: isImportant ? '1.15rem' : '1.02rem', flexShrink: 0 }}></i> : null}
+                    {iconClass ? <i className={`fa-solid ${iconClass}`} style={{ color: '#2B4C8C', fontSize: '1.05rem', flexShrink: 0 }}></i> : null}
                     <span style={{ wordBreak: 'break-word', overflowWrap: 'anywhere', minWidth: 0 }}>{ev.title}</span>
                   </strong>
                   {((!isMultiDay && ev.time) || ev.location) && (
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: isImportant ? 4 : 2, fontSize: isImportant ? '.83rem' : '.76rem', color: '#666666', fontWeight: 600, flexWrap: 'wrap' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 3, fontSize: '.78rem', color: '#666666', fontWeight: 600, flexWrap: 'wrap' }}>
                       {!isMultiDay && ev.time && (
                         <span style={{ display: 'inline-flex', alignItems: 'center', gap: 4, minWidth: 0 }}>
                           <i className="fa-regular fa-clock" style={{ fontSize: '.72rem', color: '#2B4C8C' }}></i> {ev.time}
@@ -531,7 +529,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
                 </div>
 
                 <div className="portal-activity-card-actions" style={{ minWidth: 0 }}>
-                  <TagChips tags={ev.audience} compact={!isImportant} />
+                  <TagChips tags={ev.audience} compact />
                   <span style={{ fontSize: '.85rem', color: '#2B4C8C', fontWeight: 800 }}>
                     <i className="fa-solid fa-chevron-right"></i>
                   </span>
