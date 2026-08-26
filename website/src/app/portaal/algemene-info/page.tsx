@@ -48,9 +48,13 @@ export default async function DocumentenPage() {
     console.error('Error loading resources in server component:', err)
   }
 
+  const filteredResources = isGroepsleiding
+    ? resources
+    : resources.filter(item => (item.category || '').toLowerCase() !== 'groeps')
+
   return (
     <DocumentenClient
-      initialResources={resources}
+      initialResources={filteredResources}
       isGroepsleiding={isGroepsleiding}
     />
   )

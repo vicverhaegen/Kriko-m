@@ -16,7 +16,8 @@ export default async function HomePage() {
   const welcomeBlock = siteContent['home.welcome_title'] || siteContent['home.welcome'] || {}
   const joinBlock = siteContent['home.join_title'] || siteContent['home.join'] || {}
 
-  const welcomeTitle = welcomeBlock.title || 'Welkom bij Kriko-M!'
+  const rawWelcomeTitle = welcomeBlock.title || 'Welkom bij Kriko\u2011M!'
+  const welcomeTitle = typeof rawWelcomeTitle === 'string' ? rawWelcomeTitle.replace(/Kriko-M/gi, 'Kriko\u2011M') : rawWelcomeTitle
   const welcomeContent = welcomeBlock.content || 'Wat fijn dat je een kijkje komt nemen! Bij Kriko-M draait alles om avontuur, vriendschap en samen ontdekken. Elke week staat onze enthousiaste leidingsploeg klaar om onze leden een onvergetelijke tijd vol uitdagende spelen, bosrafels en fantastische herinneringen te bezorgen.'
 
   const joinTitle = joinBlock.title || 'Zin om mee te doen?'

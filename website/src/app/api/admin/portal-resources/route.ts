@@ -36,6 +36,9 @@ export async function GET() {
   const user = await requireLeiding()
   if (!user) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
 
+  const role = user.app_metadata?.role || ''
+  const isGroepsleiding = role === 'admin' || role === 'groepsleiding'
+
   try {
     const admin = createAdminClient()
     const { data, error } = await admin
@@ -45,7 +48,10 @@ export async function GET() {
       .order('created_at', { ascending: true })
 
     if (!error && data && data.length > 0) {
-      return NextResponse.json(data)
+      const filtered = isGroepsleiding
+        ? (data as PortalResource[])
+        : (data as PortalResource[]).filter(r => (r.category || '').toLowerCase() !== 'groeps')
+      return NextResponse.json(filtered)
     }
 
     // Auto-seed default resources into DB if empty
@@ -56,13 +62,22 @@ export async function GET() {
       .select()
 
     if (!seedError && seededData && seededData.length > 0) {
-      return NextResponse.json(seededData)
+      const filtered = isGroepsleiding
+        ? (seededData as PortalResource[])
+        : (seededData as PortalResource[]).filter(r => (r.category || '').toLowerCase() !== 'groeps')
+      return NextResponse.json(filtered)
     }
 
-    return NextResponse.json(DEFAULT_RESOURCES)
+    const defaultFiltered = isGroepsleiding
+      ? DEFAULT_RESOURCES
+      : DEFAULT_RESOURCES.filter(r => (r.category || '').toLowerCase() !== 'groeps')
+    return NextResponse.json(defaultFiltered)
   } catch (err) {
     console.error('Error fetching portal_resources:', err)
-    return NextResponse.json(DEFAULT_RESOURCES)
+    const fallback = isGroepsleiding
+      ? DEFAULT_RESOURCES
+      : DEFAULT_RESOURCES.filter(r => (r.category || '').toLowerCase() !== 'groeps')
+    return NextResponse.json(fallback)
   }
 }
 

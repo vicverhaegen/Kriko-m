@@ -17,6 +17,10 @@ export async function POST(req: NextRequest) {
     const oldName = String(oldCategory).trim()
     const newName = String(newCategory).trim()
 
+    if (oldName.toLowerCase() === 'groeps') {
+      return NextResponse.json({ error: 'De categorie Groeps kan niet worden hernoemd.' }, { status: 400 })
+    }
+
     const admin = createAdminClient()
     const { error } = await admin
       .from('portal_resources')

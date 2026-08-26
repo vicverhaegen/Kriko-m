@@ -418,12 +418,28 @@ export default function DocumentenClient({ initialResources, isGroepsleiding }: 
     return []
   })
 
-  const existingCategories = Array.from(new Set(resources.map(r => r.category || 'Algemeen')))
-  const allCategoriesList = Array.from(new Set([...DEFAULT_CATEGORIES, ...existingCategories, ...userCreatedCategories]))
-    .filter(cat => !removedCategories.includes(cat))
+  const visibleResources = isGroepsleiding
+    ? resources
+    : resources.filter(r => (r.category || '').toLowerCase() !== 'groeps')
+
+  const existingCategories = Array.from(new Set(visibleResources.map(r => r.category || 'Algemeen')))
+    .filter(c => isGroepsleiding || c.toLowerCase() !== 'groeps')
+
+  const filteredUserCategories = userCreatedCategories
+    .filter(c => isGroepsleiding || c.toLowerCase() !== 'groeps')
+
+  const nonGroepsCategories = Array.from(new Set([
+    ...DEFAULT_CATEGORIES.filter(c => c.toLowerCase() !== 'groeps'),
+    ...existingCategories.filter(c => c.toLowerCase() !== 'groeps'),
+    ...filteredUserCategories.filter(c => c.toLowerCase() !== 'groeps'),
+  ])).filter(cat => !removedCategories.includes(cat))
+
+  const allCategoriesList = isGroepsleiding
+    ? ['Groeps', ...nonGroepsCategories]
+    : nonGroepsCategories
 
   const categoriesMap = allCategoriesList.reduce((acc, cat) => {
-    acc[cat] = resources.filter(r => (r.category || 'Algemeen') === cat)
+    acc[cat] = visibleResources.filter(r => (r.category || 'Algemeen') === cat)
     return acc
   }, {} as Record<string, PortalResource[]>)
 
@@ -642,10 +658,24 @@ export default function DocumentenClient({ initialResources, isGroepsleiding }: 
       {/* CATEGORY SECTIONS: Matching old design in screenshot media_1787305299614.png */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: 36 }}>
         {Object.entries(categoriesMap).map(([catName, items]) => {
-          if (items.length === 0 && !showEditControls) return null
+          const isGroepsSection = catName.toLowerCase() === 'groeps'
+          if (items.length === 0 && !showEditControls && !isGroepsSection) return null
 
           return (
-            <div key={catName} style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+            <div
+              key={catName}
+              style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 14,
+                ...(isGroepsSection ? {
+                  background: '#CBCBCB',
+                  border: '1px solid #B8B8B8',
+                  borderRadius: 20,
+                  padding: '22px 20px 26px',
+                } : {}),
+              }}
+            >
               
               {/* Category Title: Clean, bold text */}
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -660,7 +690,7 @@ export default function DocumentenClient({ initialResources, isGroepsleiding }: 
                   {catName}
                 </h2>
 
-                {showEditControls && (
+                {showEditControls && !isGroepsSection && (
                   <button
                     onClick={() => openEditCategoryModal(catName)}
                     title="Categorie bewerken"
@@ -681,7 +711,9 @@ export default function DocumentenClient({ initialResources, isGroepsleiding }: 
               {/* Items Grid: 4-Column Responsive Grid matching screenshot */}
               {items.length === 0 ? (
                 <div style={{ color: '#666666', fontSize: '0.86rem', fontStyle: 'italic' }}>
-                  Nog geen documenten in deze categorie.
+                  {isGroepsSection
+                    ? 'Nog geen documenten of links voor groepsleiding.'
+                    : 'Nog geen documenten in deze categorie.'}
                 </div>
               ) : (
                 <div style={{

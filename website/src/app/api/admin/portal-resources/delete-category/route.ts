@@ -15,6 +15,9 @@ export async function POST(req: NextRequest) {
     }
 
     const catName = String(category).trim()
+    if (catName.toLowerCase() === 'groeps') {
+      return NextResponse.json({ error: 'De categorie Groeps kan niet worden verwijderd.' }, { status: 400 })
+    }
     const admin = createAdminClient()
 
     // Move resources associated with this category to 'Algemeen'

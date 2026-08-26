@@ -53,17 +53,23 @@ export default function EditableText({
 
   // Normal visitor mode
   if (!isEditMode) {
+    const rawContent = currentText || children
+    const formattedContent =
+      typeof rawContent === 'string'
+        ? rawContent.replace(/Kriko-M/gi, (match) => match.replace('-', '\u2011'))
+        : rawContent
+
     if (Component === 'a') {
       return (
         <a href={href} target={target} rel={rel} className={className} style={style}>
-          {currentText || children}
+          {formattedContent}
         </a>
       )
     }
     const Tag = Component as React.ElementType
     return (
       <Tag className={className} style={style}>
-        {currentText || children}
+        {formattedContent}
       </Tag>
     )
   }
