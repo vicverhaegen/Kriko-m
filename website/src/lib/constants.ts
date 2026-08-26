@@ -69,8 +69,8 @@ export const AUDIENCE_KLEUREN: Record<string, string> = {
 // Kleuren per audience-tag specifiek voor het leidingsportaal
 export const PORTAAL_AUDIENCE_KLEUREN: Record<string, string> = {
   ...TAK_KLEUREN,
-  groep: '#650B19',   // bordeaux (Groep in leidingsportaal)
-  leiding: '#243B6B', // donkerblauw (Leiding in leidingsportaal)
+  groep: '#85172A',   // lichter bordeaux (Groep in leidingsportaal)
+  leiding: '#2B4C8C', // lichter donkerblauw (Leiding in leidingsportaal)
   grl: '#1E7E52',     // groen (GRL)
 }
 

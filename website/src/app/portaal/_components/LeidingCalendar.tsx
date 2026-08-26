@@ -375,12 +375,12 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
       case 'givers':
         return { bg: '#1A3FB5', border: 'none', dayColor: '#FFFFFF', monthColor: '#EEF2FC' }
       case 'groep':
-        return { bg: '#650B19', border: 'none', dayColor: '#FFFFFF', monthColor: '#F9EBEF' }
+        return { bg: '#85172A', border: 'none', dayColor: '#FFFFFF', monthColor: '#F9EBEF' }
       case 'grl':
         return { bg: '#1E7E52', border: 'none', dayColor: '#FFFFFF', monthColor: '#E6F4ED' }
       case 'leiding':
       default:
-        return { bg: '#162544', border: 'none', dayColor: '#FFFFFF', monthColor: '#EBF0F9' }
+        return { bg: '#2B4C8C', border: 'none', dayColor: '#FFFFFF', monthColor: '#EBF0F9' }
     }
   }
 
