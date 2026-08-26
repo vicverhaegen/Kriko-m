@@ -4694,16 +4694,43 @@ body.portal-theme .portaal-nav {
 }
 
 /* Responsive Grid Layout for portal agenda view */
+.portaal-agenda-page-container {
+    max-width: 1560px;
+    margin: 0 auto;
+    width: 100%;
+    padding: 12px 20px;
+    box-sizing: border-box;
+    height: calc(100vh - 64px);
+    max-height: calc(100vh - 64px);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.portal-agenda-container-root {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+}
+
 .portal-agenda-layout {
     display: grid;
-    grid-template-columns: 1.65fr 1fr;
-    gap: 28px;
-    align-items: flex-start;
-    height: calc(100vh - 108px);
+    grid-template-columns: 1.6fr 1fr;
+    gap: 24px;
+    align-items: stretch;
+    height: 100%;
+    min-height: 0;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
+    overflow: hidden;
+    flex: 1;
 }
 
 .portal-agenda-left-column {
@@ -4713,16 +4740,62 @@ body.portal-theme .portaal-nav {
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+}
+
+.portal-cal-card-wrapper {
+    flex: 1;
+    min-height: 0;
+    width: 100%;
+    max-width: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    overflow: hidden;
+}
+
+.portal-cal-grid-card {
+    background: #ffffff;
+    border-radius: 18px;
+    border: 1px solid #CCCCCC;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+    width: 100%;
+    max-width: 100%;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    height: var(--cal-card-height, 100%);
+    max-height: 100%;
+    flex-shrink: 0;
+    min-height: 0;
+}
+
+.portal-cal-header-bar {
+    flex-shrink: 0;
 }
 
 .portal-agenda-right-column {
     height: 100%;
+    min-height: 0;
     overflow-y: auto;
+    overscroll-behavior: contain;
     padding-right: 8px;
     width: 100%;
     max-width: 100%;
     min-width: 0;
     box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+}
+
+.portal-agenda-right-list {
+    flex: 1;
+    min-height: 0;
 }
 
 .portal-agenda-right-column::-webkit-scrollbar {
@@ -4740,17 +4813,51 @@ body.portal-theme .portaal-nav {
 }
 
 @media (max-width: 1024px) {
+    .portaal-agenda-page-container {
+        height: auto !important;
+        max-height: none !important;
+        overflow: visible !important;
+        padding: 16px 12px 32px !important;
+    }
+    .portal-agenda-container-root {
+        height: auto !important;
+        display: block !important;
+    }
     .portal-agenda-layout {
-        grid-template-columns: 1fr;
-        height: auto;
+        grid-template-columns: 1fr !important;
+        height: auto !important;
+        overflow: visible !important;
+        display: flex !important;
+        flex-direction: column !important;
     }
     .portal-agenda-left-column {
-        position: static;
+        position: static !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    .portal-cal-card-wrapper {
+        flex: none !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    .portal-cal-grid-card {
+        flex: none !important;
+        height: auto !important;
+    }
+    .portal-cal-grid-days {
+        grid-template-rows: auto !important;
+        grid-auto-rows: auto !important;
+        height: auto !important;
+    }
+    .portal-cal-grid-cell {
+        min-height: 72px !important;
+        height: auto !important;
+        overflow: visible !important;
     }
     .portal-agenda-right-column {
-        height: auto;
-        overflow-y: visible;
-        padding-right: 0;
+        height: auto !important;
+        overflow-y: visible !important;
+        padding-right: 0 !important;
     }
 }
 
@@ -6811,17 +6918,18 @@ body.portal-theme .portaal-nav {
     grid-template-columns: repeat(7, minmax(0, 1fr));
     text-align: center;
     font-weight: 800;
-    font-size: 0.78rem;
+    font-size: 0.74rem;
     color: #243B6B;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    padding: 10px 0 8px;
+    padding: 5px 0 4px;
     background: #F8FAFC;
     border-bottom: 2px solid #E2E8F0;
+    flex-shrink: 0;
 }
 
 .portal-cal-grid-weekday {
-    padding: 4px 0;
+    padding: 2px 0;
     min-width: 0;
     overflow: hidden;
 }
@@ -6829,42 +6937,66 @@ body.portal-theme .portaal-nav {
 .portal-cal-grid-days {
     display: grid;
     grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-auto-rows: 1fr;
     border-left: 1px solid #E2E8F0;
     border-top: 1px solid #E2E8F0;
+    flex: 1;
+    min-height: 0;
 }
 
 .portal-cal-grid-cell {
-    min-height: 98px;
-    padding: 8px 10px;
+    min-height: 0;
+    height: 100%;
+    padding: clamp(4px, 0.7vh, 8px) clamp(4px, 0.6vw, 8px);
     min-width: 0;
     border-right: 1px solid #E2E8F0;
     border-bottom: 1px solid #E2E8F0;
     background: #ffffff;
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 3px;
     transition: background-color 0.15s ease;
     box-sizing: border-box;
+    overflow: hidden;
 }
 
 .portal-cal-grid-cell:hover {
-    background: #F8FAFC;
+    background: #F8FAFD;
 }
 
 .portal-cal-grid-cell--out {
-    background: #F1F5F9;
-    opacity: 0.55;
+    background: #F1F4F8;
+    opacity: 0.65;
+}
+
+.portal-cal-grid-cell--out:hover {
+    background: #E8EDF4;
 }
 
 .portal-cal-grid-cell--today {
-    background: #EBF0F9 !important;
+    background: #EBF3FC !important;
     border-top: 3.5px solid #243B6B !important;
 }
 
+.portal-cal-grid-cell--today:hover {
+    background: #E0EDFA !important;
+}
+
 .portal-cal-grid-cell--selected {
-    background: #EBF0F9 !important;
-    outline: 2px solid #162544;
-    outline-offset: -2px;
+    background: #D6E8FB !important;
+    outline: 2.5px solid #162544 !important;
+    outline-offset: -2.5px !important;
+}
+
+.portal-cal-grid-cell--selected:hover {
+    background: #CCE2F9 !important;
+}
+
+.portal-cal-grid-cell--today.portal-cal-grid-cell--selected {
+    background: #CEE3FB !important;
+    border-top: 3.5px solid #243B6B !important;
+    outline: 2.5px solid #162544 !important;
+    outline-offset: -2.5px !important;
 }
 
 .portal-cal-grid-cell-top {
@@ -6872,11 +7004,12 @@ body.portal-theme .portaal-nav {
     align-items: center;
     justify-content: space-between;
     min-width: 0;
+    flex-shrink: 0;
 }
 
 .portal-cal-grid-day-number {
     font-weight: 800;
-    font-size: 0.95rem;
+    font-size: 0.92rem;
     color: #162544;
 }
 
@@ -6884,13 +7017,23 @@ body.portal-theme .portaal-nav {
     color: #94A3B8;
 }
 
+.portal-cal-grid-cell--today .portal-cal-grid-day-number {
+    color: #243B6B;
+    font-weight: 900;
+}
+
+.portal-cal-grid-cell--selected .portal-cal-grid-day-number {
+    color: #162544;
+    font-weight: 900;
+}
+
 .portal-cal-grid-today-tag {
-    font-size: 0.65rem;
+    font-size: 0.62rem;
     font-weight: 800;
     text-transform: uppercase;
     background: #243B6B;
     color: #FFFFFF;
-    padding: 2px 7px;
+    padding: 1px 6px;
     border-radius: 6px;
     letter-spacing: 0.3px;
 }
@@ -6898,10 +7041,22 @@ body.portal-theme .portaal-nav {
 .portal-cal-grid-cell-events {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    margin-top: 2px;
+    gap: 3px;
+    margin-top: 1px;
     min-width: 0;
     width: 100%;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    scrollbar-width: thin;
+}
+
+.portal-cal-grid-cell-events::-webkit-scrollbar {
+    width: 3px;
+}
+.portal-cal-grid-cell-events::-webkit-scrollbar-thumb {
+    background: #CBD5E1;
+    border-radius: 2px;
 }
 
 .portal-cal-mobile-dots {
