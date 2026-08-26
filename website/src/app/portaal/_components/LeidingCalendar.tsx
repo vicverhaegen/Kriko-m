@@ -1,5 +1,5 @@
 'use client'
-import { useMemo, useState, useRef } from 'react'
+import { useMemo, useState, useRef, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { CalendarEvent, AudienceTag } from '@/lib/types'
 import { AUDIENCE_TAGS, AUDIENCE_NAMEN, PORTAAL_AUDIENCE_KLEUREN } from '@/lib/constants'
@@ -52,7 +52,95 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
   const [calMonth, setCalMonth] = useState(today.getMonth()) // 0-indexed
   const [selectedDate, setSelectedDate] = useState<string | null>(null)
 
+  const layoutRef = useRef<HTMLDivElement | null>(null)
   const rightColumnRef = useRef<HTMLDivElement | null>(null)
+  const targetScrollRef = useRef<number>(0)
+  const animFrameRef = useRef<number | null>(null)
+
+  useEffect(() => {
+    if (!twoColumn) return
+    const layout = layoutRef.current
+    if (!layout) return
+
+    const handleWheel = (e: WheelEvent) => {
+      if (window.innerWidth <= 1024) return
+      const target = rightColumnRef.current
+      if (!target) return
+
+      // Don't scroll background if a modal is open
+      if (showForm || activeViewEvent || confirmDialog) return
+
+      let delta = e.deltaY
+      if (e.deltaMode === 1) {
+        delta *= 33
+      } else if (e.deltaMode === 2) {
+        delta *= window.innerHeight
+      }
+
+      const maxScroll = Math.max(0, target.scrollHeight - target.clientHeight)
+      if (maxScroll <= 0) return
+
+      // Prevent native discontinuous scroll so the entire page shares the identical smooth momentum scroll
+      e.preventDefault()
+
+      const currentScroll = target.scrollTop
+
+      if (animFrameRef.current === null) {
+        targetScrollRef.current = currentScroll
+      } else {
+        const currentDiff = targetScrollRef.current - currentScroll
+        if ((delta > 0 && currentDiff < -10) || (delta < 0 && currentDiff > 10)) {
+          targetScrollRef.current = currentScroll
+        }
+      }
+
+      targetScrollRef.current = Math.max(0, Math.min(maxScroll, targetScrollRef.current + delta))
+
+      if (animFrameRef.current === null) {
+        const animate = () => {
+          const col = rightColumnRef.current
+          if (!col) {
+            animFrameRef.current = null
+            return
+          }
+          const current = col.scrollTop
+          const dest = targetScrollRef.current
+          const diff = dest - current
+
+          if (Math.abs(diff) < 0.5) {
+            col.scrollTop = dest
+            animFrameRef.current = null
+            return
+          }
+
+          col.scrollTop = current + diff * 0.16
+          animFrameRef.current = requestAnimationFrame(animate)
+        }
+        animFrameRef.current = requestAnimationFrame(animate)
+      }
+    }
+
+    const handlePointerDown = () => {
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current)
+        animFrameRef.current = null
+      }
+      if (rightColumnRef.current) {
+        targetScrollRef.current = rightColumnRef.current.scrollTop
+      }
+    }
+
+    layout.addEventListener('wheel', handleWheel, { passive: false })
+    layout.addEventListener('pointerdown', handlePointerDown)
+
+    return () => {
+      layout.removeEventListener('wheel', handleWheel)
+      layout.removeEventListener('pointerdown', handlePointerDown)
+      if (animFrameRef.current !== null) {
+        cancelAnimationFrame(animFrameRef.current)
+      }
+    }
+  }, [twoColumn, showForm, activeViewEvent, confirmDialog])
 
 
 
@@ -646,16 +734,9 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
 
       {twoColumn ? (
         // Two-column: filter bar + calendar grid left (sticky), activity list right
-        <div className="portal-agenda-layout">
+        <div className="portal-agenda-layout" ref={layoutRef}>
           {/* Left: filter bar + calendar grid */}
-          <div
-            className="portal-agenda-left-column"
-            onWheel={(e) => {
-              if (window.innerWidth > 1024 && rightColumnRef.current) {
-                rightColumnRef.current.scrollTop += e.deltaY
-              }
-            }}
-          >
+          <div className="portal-agenda-left-column">
             {FilterBar()}
             {selectedDate && (
               <div style={{ marginBottom: 12, padding: '8px 14px', background: '#EBF0F9', border: '1.5px solid #D0DCEE', borderRadius: 10, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, flexShrink: 0 }}>
