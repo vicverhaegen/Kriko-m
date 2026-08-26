@@ -445,11 +445,11 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
             <span style={{ fontSize: 11, fontWeight: 700, color: monthColor, lineHeight: 1, textTransform: 'lowercase' }}>{startMaand}</span>
           </>
         ) : (
-          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 1 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
             <span style={{ fontSize: 11, fontWeight: 800, color: dayColor, lineHeight: 1.15, whiteSpace: 'nowrap' }}>
               {startDay} {startMaand}
             </span>
-            <span style={{ fontSize: 10.5, fontWeight: 700, color: monthColor, lineHeight: 1.15, whiteSpace: 'nowrap' }}>
+            <span style={{ fontSize: 11, fontWeight: 800, color: dayColor, lineHeight: 1.15, whiteSpace: 'nowrap' }}>
               – {endDay} {endMaand}
             </span>
           </div>
