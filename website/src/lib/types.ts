@@ -23,6 +23,9 @@ export interface Settings {
   contact_email: string
   webshop_email?: string
   webshop_financial_email?: string
+  webshop_enable_customer_email?: boolean
+  webshop_enable_financial_email?: boolean
+  webshop_enable_team_email?: boolean
   contact_phone: string
   contact_address: string
   alert_message: string

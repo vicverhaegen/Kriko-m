@@ -62,6 +62,9 @@ export default function WebshopPageClient({
   // Settings State
   const [webshopEmail, setWebshopEmail] = useState(initialSettings?.webshop_email || '')
   const [webshopFinancialEmail, setWebshopFinancialEmail] = useState(initialSettings?.webshop_financial_email || '')
+  const [enableCustomerEmail, setEnableCustomerEmail] = useState(initialSettings?.webshop_enable_customer_email !== false)
+  const [enableFinancialEmail, setEnableFinancialEmail] = useState(initialSettings?.webshop_enable_financial_email !== false)
+  const [enableTeamEmail, setEnableTeamEmail] = useState(initialSettings?.webshop_enable_team_email !== false)
   const [savingSettings, setSavingSettings] = useState(false)
   const [flashMessage, setFlashMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
@@ -218,6 +221,9 @@ export default function WebshopPageClient({
         body: JSON.stringify({
           webshop_email: webshopEmail.trim(),
           webshop_financial_email: webshopFinancialEmail.trim(),
+          webshop_enable_customer_email: enableCustomerEmail,
+          webshop_enable_financial_email: enableFinancialEmail,
+          webshop_enable_team_email: enableTeamEmail,
         }),
       })
       if (!res.ok) throw new Error('Opslaan van instellingen mislukt')
@@ -1186,48 +1192,201 @@ export default function WebshopPageClient({
         {/* TAB 3: WEBSHOP INSTELLINGEN                              */}
         {/* ======================================================== */}
         {activeTab === 'instellingen' && (
-          <div style={{ maxWidth: 840, display: 'flex', flexDirection: 'column', gap: 24 }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: 740 }}>
             
-            {/* 1. Bestellingsmeldingen e-mail */}
-            <div style={{ backgroundColor: '#F8FAFC', borderRadius: 14, border: '1.5px solid #E2E8F0', padding: '24px 28px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#EBF0F9', color: '#243B6B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
-                  <i className="fa-solid fa-envelope"></i>
+            {/* 1. Bevestigingsmail naar koper */}
+            <div style={{
+              backgroundColor: '#F8FAFC',
+              borderRadius: 16,
+              border: enableCustomerEmail ? '1.5px solid #CBD5E1' : '1.5px solid #E2E8F0',
+              padding: '22px 26px',
+              transition: 'all 0.2s ease',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: enableCustomerEmail ? '#EBF0F9' : '#E2E8F0',
+                    color: enableCustomerEmail ? '#243B6B' : '#64748B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    <i className="fa-solid fa-envelope-circle-check"></i>
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '1.08rem', color: '#162544', display: 'block', lineHeight: 1.2 }}>
+                      Bevestigingsmail naar Koper
+                    </strong>
+                    <span style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      color: enableCustomerEmail ? '#15803D' : '#991B1B',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      marginTop: 2,
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: enableCustomerEmail ? '#16A34A' : '#DC2626' }}></span>
+                      {enableCustomerEmail ? 'Ingeschakeld' : 'Uitgeschakeld'}
+                    </span>
+                  </div>
                 </div>
-                <strong style={{ fontSize: '1.05rem', color: '#162544' }}>
-                  E-mailadres voor Bestellingsmeldingen
-                </strong>
+
+                {/* iOS-style toggle switch */}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={enableCustomerEmail}
+                  onClick={() => setEnableCustomerEmail(prev => !prev)}
+                  title={enableCustomerEmail ? 'Klik om uit te schakelen' : 'Klik om in te schakelen'}
+                  style={{
+                    width: 50,
+                    height: 28,
+                    borderRadius: 14,
+                    backgroundColor: enableCustomerEmail ? '#166534' : '#CBD5E1',
+                    border: 'none',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    transition: 'background-color 0.2s ease',
+                    padding: 2,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    flexShrink: 0,
+                    boxShadow: enableCustomerEmail ? '0 2px 6px rgba(22, 101, 52, 0.3)' : 'none',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      backgroundColor: '#FFFFFF',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      transform: enableCustomerEmail ? 'translateX(22px)' : 'translateX(0px)',
+                      transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      display: 'block',
+                    }}
+                  />
+                </button>
               </div>
-              <p style={{ margin: '0 0 16px', fontSize: '0.86rem', color: '#64748B', lineHeight: 1.5 }}>
-                Dit e-mailadres (webshop / uniformverantwoordelijke) ontvangt automatisch een bericht bij elke nieuwe geplaatste bestelling.
+
+              <p style={{ margin: '0 0 12px', fontSize: '0.86rem', color: '#64748B', lineHeight: 1.5 }}>
+                Verstuurt automatisch een bestelbevestiging met de gestructureerde mededeling (KM-XXXX) en besteldetails naar het e-mailadres van de koper.
               </p>
-              <div>
-                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 6 }}>
-                  E-mailadres Webshopverantwoordelijke
-                </label>
-                <input
-                  type="email"
-                  value={webshopEmail}
-                  onChange={e => setWebshopEmail(e.target.value)}
-                  placeholder="bestellingen@kriko-m.be"
-                  style={{ width: '100%', maxWidth: 500, padding: '10px 14px', border: '1.5px solid #CBD5E1', borderRadius: 8, fontSize: '0.92rem', fontWeight: 700, color: '#162544' }}
-                />
-              </div>
+
+              {!enableCustomerEmail && (
+                <div style={{
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  color: '#991B1B',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}>
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                  <span>Kopers ontvangen geen automatische bevestigingsmail bij het afronden van een bestelling.</span>
+                </div>
+              )}
             </div>
 
             {/* 2. Financieel e-mailadres */}
-            <div style={{ backgroundColor: '#F8FAFC', borderRadius: 14, border: '1.5px solid #E2E8F0', padding: '24px 28px' }}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
-                <div style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#EEF5F1', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
-                  <i className="fa-solid fa-file-invoice-dollar"></i>
+            <div style={{
+              backgroundColor: '#F8FAFC',
+              borderRadius: 16,
+              border: enableFinancialEmail ? '1.5px solid #CBD5E1' : '1.5px solid #E2E8F0',
+              padding: '22px 26px',
+              transition: 'all 0.2s ease',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: enableFinancialEmail ? '#EEF5F1' : '#E2E8F0',
+                    color: enableFinancialEmail ? '#166534' : '#64748B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    <i className="fa-solid fa-file-invoice-dollar"></i>
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '1.08rem', color: '#162544', display: 'block', lineHeight: 1.2 }}>
+                      Financiële Notificatiemail
+                    </strong>
+                    <span style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      color: enableFinancialEmail ? '#15803D' : '#991B1B',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      marginTop: 2,
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: enableFinancialEmail ? '#16A34A' : '#DC2626' }}></span>
+                      {enableFinancialEmail ? 'Ingeschakeld' : 'Uitgeschakeld'}
+                    </span>
+                  </div>
                 </div>
-                <strong style={{ fontSize: '1.05rem', color: '#162544' }}>
-                  E-mailadres Financieel Verantwoordelijke
-                </strong>
+
+                {/* iOS-style toggle switch */}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={enableFinancialEmail}
+                  onClick={() => setEnableFinancialEmail(prev => !prev)}
+                  title={enableFinancialEmail ? 'Klik om uit te schakelen' : 'Klik om in te schakelen'}
+                  style={{
+                    width: 50,
+                    height: 28,
+                    borderRadius: 14,
+                    backgroundColor: enableFinancialEmail ? '#166534' : '#CBD5E1',
+                    border: 'none',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    transition: 'background-color 0.2s ease',
+                    padding: 2,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    flexShrink: 0,
+                    boxShadow: enableFinancialEmail ? '0 2px 6px rgba(22, 101, 52, 0.3)' : 'none',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      backgroundColor: '#FFFFFF',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      transform: enableFinancialEmail ? 'translateX(22px)' : 'translateX(0px)',
+                      transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      display: 'block',
+                    }}
+                  />
+                </button>
               </div>
+
               <p style={{ margin: '0 0 16px', fontSize: '0.86rem', color: '#64748B', lineHeight: 1.5 }}>
                 Ontvangt automatisch een e-mailbericht wanneer een bestelling via overschrijving geplaatst wordt, zodat de bankoverschrijving gecontroleerd en geverifieerd kan worden.
               </p>
+
               <div>
                 <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 6 }}>
                   E-mailadres Financieel Verantwoordelijke
@@ -1237,25 +1396,190 @@ export default function WebshopPageClient({
                   value={webshopFinancialEmail}
                   onChange={e => setWebshopFinancialEmail(e.target.value)}
                   placeholder="financieel@kriko-m.be"
-                  style={{ width: '100%', maxWidth: 500, padding: '10px 14px', border: '1.5px solid #CBD5E1', borderRadius: 8, fontSize: '0.92rem', fontWeight: 700, color: '#162544' }}
+                  disabled={!enableFinancialEmail}
+                  style={{
+                    width: '100%',
+                    maxWidth: 500,
+                    padding: '10px 14px',
+                    border: '1.5px solid #CBD5E1',
+                    borderRadius: 8,
+                    fontSize: '0.92rem',
+                    fontWeight: 700,
+                    color: '#162544',
+                    backgroundColor: enableFinancialEmail ? '#FFFFFF' : '#F1F5F9',
+                    cursor: enableFinancialEmail ? 'text' : 'not-allowed',
+                    opacity: enableFinancialEmail ? 1 : 0.65,
+                  }}
                 />
               </div>
+
+              {!enableFinancialEmail && (
+                <div style={{
+                  marginTop: 12,
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  color: '#991B1B',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}>
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                  <span>Er wordt geen notificatie gestuurd naar de financiële verantwoordelijke bij nieuwe bestellingen.</span>
+                </div>
+              )}
+            </div>
+
+            {/* 3. Webshopverantwoordelijke e-mailadres */}
+            <div style={{
+              backgroundColor: '#F8FAFC',
+              borderRadius: 16,
+              border: enableTeamEmail ? '1.5px solid #CBD5E1' : '1.5px solid #E2E8F0',
+              padding: '22px 26px',
+              transition: 'all 0.2s ease',
+            }}>
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, gap: 14 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                  <div style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    backgroundColor: enableTeamEmail ? '#EBF0F9' : '#E2E8F0',
+                    color: enableTeamEmail ? '#243B6B' : '#64748B',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '1rem',
+                    transition: 'all 0.2s ease',
+                  }}>
+                    <i className="fa-solid fa-envelope"></i>
+                  </div>
+                  <div>
+                    <strong style={{ fontSize: '1.08rem', color: '#162544', display: 'block', lineHeight: 1.2 }}>
+                      Notificatiemail Webshopteam
+                    </strong>
+                    <span style={{
+                      fontSize: '0.72rem',
+                      fontWeight: 800,
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      color: enableTeamEmail ? '#15803D' : '#991B1B',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: 4,
+                      marginTop: 2,
+                    }}>
+                      <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: enableTeamEmail ? '#16A34A' : '#DC2626' }}></span>
+                      {enableTeamEmail ? 'Ingeschakeld' : 'Uitgeschakeld'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* iOS-style toggle switch */}
+                <button
+                  type="button"
+                  role="switch"
+                  aria-checked={enableTeamEmail}
+                  onClick={() => setEnableTeamEmail(prev => !prev)}
+                  title={enableTeamEmail ? 'Klik om uit te schakelen' : 'Klik om in te schakelen'}
+                  style={{
+                    width: 50,
+                    height: 28,
+                    borderRadius: 14,
+                    backgroundColor: enableTeamEmail ? '#166534' : '#CBD5E1',
+                    border: 'none',
+                    cursor: 'pointer',
+                    position: 'relative',
+                    transition: 'background-color 0.2s ease',
+                    padding: 2,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    flexShrink: 0,
+                    boxShadow: enableTeamEmail ? '0 2px 6px rgba(22, 101, 52, 0.3)' : 'none',
+                  }}
+                >
+                  <span
+                    style={{
+                      width: 24,
+                      height: 24,
+                      borderRadius: '50%',
+                      backgroundColor: '#FFFFFF',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      transform: enableTeamEmail ? 'translateX(22px)' : 'translateX(0px)',
+                      transition: 'transform 0.2s cubic-bezier(0.16, 1, 0.3, 1)',
+                      display: 'block',
+                    }}
+                  />
+                </button>
+              </div>
+
+              <p style={{ margin: '0 0 16px', fontSize: '0.86rem', color: '#64748B', lineHeight: 1.5 }}>
+                Dit e-mailadres (webshop / uniformverantwoordelijke) ontvangt een notificatie bij elke nieuwe bestelling om artikelen klaar te leggen.
+              </p>
+
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 6 }}>
+                  E-mailadres Webshopverantwoordelijke
+                </label>
+                <input
+                  type="email"
+                  value={webshopEmail}
+                  onChange={e => setWebshopEmail(e.target.value)}
+                  placeholder="bestellingen@kriko-m.be"
+                  disabled={!enableTeamEmail}
+                  style={{
+                    width: '100%',
+                    maxWidth: 500,
+                    padding: '10px 14px',
+                    border: '1.5px solid #CBD5E1',
+                    borderRadius: 8,
+                    fontSize: '0.92rem',
+                    fontWeight: 700,
+                    color: '#162544',
+                    backgroundColor: enableTeamEmail ? '#FFFFFF' : '#F1F5F9',
+                    cursor: enableTeamEmail ? 'text' : 'not-allowed',
+                    opacity: enableTeamEmail ? 1 : 0.65,
+                  }}
+                />
+              </div>
+
+              {!enableTeamEmail && (
+                <div style={{
+                  marginTop: 12,
+                  padding: '10px 14px',
+                  borderRadius: 10,
+                  backgroundColor: '#FEF2F2',
+                  border: '1px solid #FECACA',
+                  color: '#991B1B',
+                  fontSize: '0.84rem',
+                  fontWeight: 600,
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 8,
+                }}>
+                  <i className="fa-solid fa-triangle-exclamation"></i>
+                  <span>Het webshopteam ontvangt geen automatische notificatiemail bij nieuwe bestellingen.</span>
+                </div>
+              )}
             </div>
 
             {/* Save Button */}
-            <div>
+            <div style={{ marginTop: 8 }}>
               <button
                 type="button"
                 onClick={handleSaveSettings}
                 disabled={savingSettings}
                 style={{
-                  padding: '13px 26px',
-                  borderRadius: 10,
+                  padding: '13px 28px',
+                  borderRadius: 12,
                   backgroundColor: '#243B6B',
                   color: '#FFFFFF',
                   border: 'none',
                   fontWeight: 900,
-                  fontSize: '0.94rem',
+                  fontSize: '0.95rem',
                   cursor: 'pointer',
                   display: 'inline-flex',
                   alignItems: 'center',

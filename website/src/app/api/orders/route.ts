@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
 import { Product, OrderItem } from '@/lib/types'
+import { normalizeSettings } from '@/lib/db'
 import { sendOrderConfirmation, sendWebshopOrderNotification, sendFinancialOrderNotification } from '@/lib/email'
 
 // Eenvoudige mededeling en bestelnummer (bijv. KM-0001)
@@ -43,14 +44,18 @@ export async function POST(req: NextRequest) {
     const supabase = createAdminClient()
 
     // Bank- en instellingsgegevens ophalen
-    const { data: settings } = await supabase
+    const { data: rawSettings } = await supabase
       .from('settings')
       .select('*')
       .single()
+    const settings = normalizeSettings(rawSettings)
     const bankIban = settings?.bank_iban || 'BE59 7360 6413 2626'
     const bankHolder = settings?.bank_holder || 'Scouts Kriko-M vzw'
     const webshopEmail = settings?.webshop_email || 'groepsleiding@kriko-m.be'
     const webshopFinancialEmail = settings?.webshop_financial_email || ''
+    const enableCustomerEmail = settings?.webshop_enable_customer_email !== false
+    const enableTeamEmail = settings?.webshop_enable_team_email !== false
+    const enableFinancialEmail = settings?.webshop_enable_financial_email !== false
 
     // Catalogus ophalen voor server-side prijsvalidatie
     const { data: products } = await supabase
@@ -140,42 +145,46 @@ export async function POST(req: NextRequest) {
     }
 
     // 1. E-mail naar koper
-    try {
-      await sendOrderConfirmation({
-        to: email.trim(),
-        orderRef,
-        customerName: customer_name.trim(),
-        items: validatedCart,
-        total,
-        communication,
-        bankIban,
-        bankHolder,
-        paymentMethod,
-      })
-    } catch (mailErr) {
-      console.error('Koper bevestigingsmail mislukt:', mailErr)
+    if (enableCustomerEmail) {
+      try {
+        await sendOrderConfirmation({
+          to: email.trim(),
+          orderRef,
+          customerName: customer_name.trim(),
+          items: validatedCart,
+          total,
+          communication,
+          bankIban,
+          bankHolder,
+          paymentMethod,
+        })
+      } catch (mailErr) {
+        console.error('Koper bevestigingsmail mislukt:', mailErr)
+      }
     }
 
     // 2. Notificatiemail naar webshopverantwoordelijke
-    try {
-      await sendWebshopOrderNotification({
-        to: webshopEmail,
-        orderRef,
-        customerName: customer_name.trim(),
-        email: email.trim(),
-        items: validatedCart,
-        total,
-        communication,
-        bankIban,
-        bankHolder,
-        paymentMethod,
-      })
-    } catch (orderMailErr) {
-      console.error('Notificatiemail mislukt:', orderMailErr)
+    if (enableTeamEmail && webshopEmail) {
+      try {
+        await sendWebshopOrderNotification({
+          to: webshopEmail,
+          orderRef,
+          customerName: customer_name.trim(),
+          email: email.trim(),
+          items: validatedCart,
+          total,
+          communication,
+          bankIban,
+          bankHolder,
+          paymentMethod,
+        })
+      } catch (orderMailErr) {
+        console.error('Notificatiemail mislukt:', orderMailErr)
+      }
     }
 
     // 3. Notificatiemail naar financieel verantwoordelijke (enkel bij overschrijving)
-    if (paymentMethod === 'overschrijving' && webshopFinancialEmail) {
+    if (enableFinancialEmail && paymentMethod === 'overschrijving' && webshopFinancialEmail) {
       try {
         await sendFinancialOrderNotification({
           to: webshopFinancialEmail,

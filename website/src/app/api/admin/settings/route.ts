@@ -39,6 +39,12 @@ export async function PATCH(req: NextRequest) {
     'portal_login_foto',
   ]
 
+  const WEBSHOP_BOOLEAN_FIELDS = [
+    'webshop_enable_customer_email',
+    'webshop_enable_financial_email',
+    'webshop_enable_team_email',
+  ]
+
   let pbChanged = false
   if (isGroepsleiding) {
     for (const field of PORTAL_FIELDS) {
@@ -46,6 +52,13 @@ export async function PATCH(req: NextRequest) {
         pb[field] = String(body[field]).slice(0, 1000)
         pbChanged = true
       }
+    }
+  }
+
+  for (const field of WEBSHOP_BOOLEAN_FIELDS) {
+    if (field in body) {
+      pb[field] = Boolean(body[field])
+      pbChanged = true
     }
   }
 

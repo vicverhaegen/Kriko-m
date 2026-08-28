@@ -12,6 +12,9 @@ export function normalizeSettings(data: any): any {
     home_title_groepsleiding: data.home_title_groepsleiding ?? pb.home_title_groepsleiding ?? null,
     home_subtitle_groepsleiding: data.home_subtitle_groepsleiding ?? pb.home_subtitle_groepsleiding ?? null,
     portal_login_foto: data.portal_login_foto ?? pb.portal_login_foto ?? null,
+    webshop_enable_customer_email: data.webshop_enable_customer_email ?? (pb.webshop_enable_customer_email !== undefined ? pb.webshop_enable_customer_email : true),
+    webshop_enable_financial_email: data.webshop_enable_financial_email ?? (pb.webshop_enable_financial_email !== undefined ? pb.webshop_enable_financial_email : true),
+    webshop_enable_team_email: data.webshop_enable_team_email ?? (pb.webshop_enable_team_email !== undefined ? pb.webshop_enable_team_email : true),
   }
 }
 
