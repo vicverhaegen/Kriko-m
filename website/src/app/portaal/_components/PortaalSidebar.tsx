@@ -12,13 +12,6 @@ interface Props {
   onCloseMobile?: () => void
 }
 
-interface AccountInfo {
-  id: string | null
-  role: 'leiding' | 'groepsleiding' | 'webshop'
-  email: string
-  naam: string
-}
-
 export default function PortaalSidebar({ naam, role, mobileOpen = false, onCloseMobile }: Props) {
   const pathname = usePathname()
   const router = useRouter()

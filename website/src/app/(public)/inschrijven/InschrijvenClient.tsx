@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import CopyButton from '@/components/CopyButton'
 import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
 import ProtectedIBAN from '@/components/anti-scraping/ProtectedIBAN'
 import EditableText from '@/components/editing/EditableText'

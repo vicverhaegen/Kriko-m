@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 
 interface ProtectedIBANProps {
   iban?: string
@@ -11,16 +11,11 @@ interface ProtectedIBANProps {
 
 export default function ProtectedIBAN({
   iban = 'BE59736064132626',
-  displayIban = 'BE59 7360 6413 2626',
+  displayIban: _displayIban = 'BE59 7360 6413 2626',
   className,
   buttonStyle,
 }: ProtectedIBANProps) {
-  const [mounted, setMounted] = useState(false)
   const [copied, setCopied] = useState(false)
-
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   const handleCopy = async () => {
     try {

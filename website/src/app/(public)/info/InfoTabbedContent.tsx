@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
-import CopyButton from '@/components/CopyButton'
 import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
 import EditableText from '@/components/editing/EditableText'
 import EditableImage from '@/components/editing/EditableImage'

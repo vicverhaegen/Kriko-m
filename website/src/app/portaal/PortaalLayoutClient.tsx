@@ -1,8 +1,7 @@
 'use client'
 
 import { useEffect, useState, useTransition, useCallback } from 'react'
-import { usePathname, useRouter, useSearchParams } from 'next/navigation'
-import Link from 'next/link'
+import { usePathname, useRouter } from 'next/navigation'
 import PortaalSidebar from './_components/PortaalSidebar'
 
 interface Props {
@@ -14,7 +13,6 @@ interface Props {
 
 export default function PortaalLayoutClient({ children, naam, role, settings }: Props) {
   const pathname = usePathname()
-  const searchParams = useSearchParams()
   const router = useRouter()
   const [isPending, startTransition] = useTransition()
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)

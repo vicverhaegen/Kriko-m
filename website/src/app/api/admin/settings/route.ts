@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
-import { requireGroepsleiding, requireWebshop } from '@/lib/auth'
+import { requireWebshop } from '@/lib/auth'
 import { revalidateTag } from 'next/cache'
 import { PORTAAL_TAKKEN } from '@/lib/constants'
 import { normalizeSettings } from '@/lib/db'
