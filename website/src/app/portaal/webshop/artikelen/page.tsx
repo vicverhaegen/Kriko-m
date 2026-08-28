@@ -19,13 +19,17 @@ export default async function WebshopArtikelenPage() {
   if (!isAuthorized) redirect('/portaal/home')
 
   const admin = createAdminClient()
-  const { data: settingsData } = await admin.from('settings').select('*').single()
+  const [{ data: settingsData }, { data: productsData }] = await Promise.all([
+    admin.from('settings').select('*').single(),
+    admin.from('shop_products').select('*').order('sort_order', { ascending: true }),
+  ])
 
   return (
     <WebshopPageClient
       initialSettings={normalizeSettings(settingsData) as Settings}
       role={role}
       activeTab="artikelen"
+      initialShopProducts={productsData ?? []}
     />
   )
 }

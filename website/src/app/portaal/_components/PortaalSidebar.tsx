@@ -80,8 +80,20 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
     router.refresh()
   }
 
-  // Navigation Items (REMOVED 'Overzicht' as requested, clicking top-left brand goes to /portaal/home!)
-  const navItems = [
+  // Collapsible menu state
+  const isWebsiteRoute = pathname.startsWith('/portaal/instellingen')
+  const isWebshopRoute = pathname.startsWith('/portaal/webshop')
+
+  const [websiteBeheerOpen, setWebsiteBeheerOpen] = useState(isWebsiteRoute)
+  const [webshopBeheerOpen, setWebshopBeheerOpen] = useState(isWebshopRoute)
+
+  useEffect(() => {
+    if (isWebsiteRoute) setWebsiteBeheerOpen(true)
+    if (isWebshopRoute) setWebshopBeheerOpen(true)
+  }, [pathname, isWebsiteRoute, isWebshopRoute])
+
+  // Regular Navigation Items (Kriko Echo, Documenten, Agenda)
+  const standardNavItems = [
     {
       href: '/portaal/echos',
       label: 'Kriko Echo',
@@ -102,27 +114,6 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
       icon: 'fa-solid fa-calendar-days',
       active: pathname === '/portaal/leiding/agenda',
       show: !isWebshop,
-    },
-    {
-      href: '/portaal/website-beheer',
-      label: 'Website Beheer',
-      icon: 'fa-solid fa-globe',
-      active: pathname === '/portaal/website-beheer',
-      show: isGroepsleiding,
-    },
-    {
-      href: '/portaal/webshop/bestellingen',
-      label: 'Webshop Bestellingen',
-      icon: 'fa-solid fa-box-archive',
-      active: pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop',
-      show: isWebshop || isGroepsleiding,
-    },
-    {
-      href: '/portaal/webshop/artikelen',
-      label: 'Webshop Artikelen',
-      icon: 'fa-solid fa-shirt',
-      active: pathname === '/portaal/webshop/artikelen',
-      show: isGroepsleiding,
     },
   ].filter(item => item.show)
 
@@ -201,7 +192,7 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
                 letterSpacing: '0.01em',
                 lineHeight: 1.1,
               }}>
-                Leidingsportaal
+                {isWebshop ? 'Webshop' : 'Leidingsportaal'}
               </span>
             </Link>
 
@@ -238,7 +229,69 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
               Navigatie
             </span>
 
-            {navItems.map((item) => (
+            {/* Webshop Direct Navigation Items (Voor Webshop rol: enkel Bestellingen & Artikelen, géén dropdown) */}
+            {isWebshop && (
+              <>
+                <Link
+                  href="/portaal/webshop/bestellingen"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '11px 14px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    fontSize: '0.92rem',
+                    fontWeight: (pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? 800 : 600,
+                    color: '#FFFFFF',
+                    background: (pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? '#243B6B' : 'transparent',
+                    boxShadow: (pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none',
+                    transition: 'all 0.15s ease',
+                    flexShrink: 0,
+                  }}
+                  className={`portaal-sidebar-item ${(pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? 'active' : ''}`}
+                >
+                  <i className="fa-solid fa-box-archive" style={{
+                    fontSize: '1rem',
+                    width: 20,
+                    textAlign: 'center',
+                    color: (pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? '#FFFFFF' : 'rgba(255, 255, 255, 0.75)',
+                  }}></i>
+                  <span>Bestellingen</span>
+                </Link>
+
+                <Link
+                  href="/portaal/webshop/artikelen"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 12,
+                    padding: '11px 14px',
+                    borderRadius: 10,
+                    textDecoration: 'none',
+                    fontSize: '0.92rem',
+                    fontWeight: pathname === '/portaal/webshop/artikelen' ? 800 : 600,
+                    color: '#FFFFFF',
+                    background: pathname === '/portaal/webshop/artikelen' ? '#243B6B' : 'transparent',
+                    boxShadow: pathname === '/portaal/webshop/artikelen' ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none',
+                    transition: 'all 0.15s ease',
+                    flexShrink: 0,
+                  }}
+                  className={`portaal-sidebar-item ${pathname === '/portaal/webshop/artikelen' ? 'active' : ''}`}
+                >
+                  <i className="fa-solid fa-shirt" style={{
+                    fontSize: '1rem',
+                    width: 20,
+                    textAlign: 'center',
+                    color: pathname === '/portaal/webshop/artikelen' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.75)',
+                  }}></i>
+                  <span>Artikelen</span>
+                </Link>
+              </>
+            )}
+
+            {/* Standard Nav Items (Voor Leiding & Groepsleiding) */}
+            {!isWebshop && standardNavItems.map((item) => (
               <Link
                 key={item.href}
                 href={item.href}
@@ -268,6 +321,224 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
                 <span>{item.label}</span>
               </Link>
             ))}
+
+            {/* Collapsible: Website Beheer (Voor Groepsleiding) */}
+            {isGroepsleiding && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <button
+                  type="button"
+                  onClick={() => setWebsiteBeheerOpen(prev => !prev)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    padding: '11px 14px',
+                    borderRadius: 10,
+                    fontSize: '0.92rem',
+                    fontWeight: 600,
+                    color: '#FFFFFF',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    width: '100%',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="portaal-sidebar-item"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <i className="fa-solid fa-globe" style={{
+                      fontSize: '1rem',
+                      width: 20,
+                      textAlign: 'center',
+                      color: 'rgba(255, 255, 255, 0.75)',
+                    }}></i>
+                    <span>Website Beheer</span>
+                  </div>
+                  <i
+                    className={`fa-solid fa-chevron-down`}
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'rgba(255, 255, 255, 0.65)',
+                      transition: 'transform 0.2s ease',
+                      transform: websiteBeheerOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  ></i>
+                </button>
+
+                {/* Submenu Website Beheer */}
+                {websiteBeheerOpen && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingLeft: 12, marginTop: 2 }}>
+                    <Link
+                      href="/?edit=true"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        textDecoration: 'none',
+                        fontSize: '0.86rem',
+                        fontWeight: 600,
+                        color: 'rgba(255, 255, 255, 0.88)',
+                        transition: 'all 0.15s ease',
+                      }}
+                      className="portaal-sidebar-item"
+                    >
+                      <i className="fa-solid fa-pen-to-square" style={{ fontSize: '0.82rem', width: 18, textAlign: 'center', color: 'rgba(255, 255, 255, 0.7)' }}></i>
+                      <span>Live Bewerken</span>
+                    </Link>
+
+                    <Link
+                      href="/portaal/instellingen"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        textDecoration: 'none',
+                        fontSize: '0.86rem',
+                        fontWeight: pathname === '/portaal/instellingen' ? 800 : 600,
+                        color: '#FFFFFF',
+                        background: pathname === '/portaal/instellingen' ? '#243B6B' : 'transparent',
+                        boxShadow: pathname === '/portaal/instellingen' ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                      className={`portaal-sidebar-item ${pathname === '/portaal/instellingen' ? 'active' : ''}`}
+                    >
+                      <i className="fa-solid fa-sliders" style={{ fontSize: '0.82rem', width: 18, textAlign: 'center', color: pathname === '/portaal/instellingen' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)' }}></i>
+                      <span>Portaal Instellingen</span>
+                    </Link>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Collapsible: Webshop Beheer (Enkel voor Groepsleiding) */}
+            {isGroepsleiding && (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                <button
+                  type="button"
+                  onClick={() => setWebshopBeheerOpen(prev => !prev)}
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: 12,
+                    padding: '11px 14px',
+                    borderRadius: 10,
+                    fontSize: '0.92rem',
+                    fontWeight: 600,
+                    color: '#FFFFFF',
+                    background: 'transparent',
+                    border: 'none',
+                    cursor: 'pointer',
+                    width: '100%',
+                    textAlign: 'left',
+                    transition: 'all 0.15s ease',
+                  }}
+                  className="portaal-sidebar-item"
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                    <i className="fa-solid fa-store" style={{
+                      fontSize: '1rem',
+                      width: 20,
+                      textAlign: 'center',
+                      color: 'rgba(255, 255, 255, 0.75)',
+                    }}></i>
+                    <span>Webshop Beheer</span>
+                  </div>
+                  <i
+                    className={`fa-solid fa-chevron-down`}
+                    style={{
+                      fontSize: '0.75rem',
+                      color: 'rgba(255, 255, 255, 0.65)',
+                      transition: 'transform 0.2s ease',
+                      transform: webshopBeheerOpen ? 'rotate(180deg)' : 'rotate(0deg)',
+                    }}
+                  ></i>
+                </button>
+
+                {/* Submenu Webshop Beheer */}
+                {webshopBeheerOpen && (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 2, paddingLeft: 12, marginTop: 2 }}>
+                    
+                    {/* 1. Bestellingen */}
+                    <Link
+                      href="/portaal/webshop/bestellingen"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        textDecoration: 'none',
+                        fontSize: '0.86rem',
+                        fontWeight: (pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? 800 : 600,
+                        color: '#FFFFFF',
+                        background: (pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? '#243B6B' : 'transparent',
+                        boxShadow: (pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                      className={`portaal-sidebar-item ${(pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? 'active' : ''}`}
+                    >
+                      <i className="fa-solid fa-box-archive" style={{ fontSize: '0.82rem', width: 18, textAlign: 'center', color: (pathname === '/portaal/webshop/bestellingen' || pathname === '/portaal/webshop') ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)' }}></i>
+                      <span>Bestellingen</span>
+                    </Link>
+
+                    {/* 2. Artikelen */}
+                    <Link
+                      href="/portaal/webshop/artikelen"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        textDecoration: 'none',
+                        fontSize: '0.86rem',
+                        fontWeight: pathname === '/portaal/webshop/artikelen' ? 800 : 600,
+                        color: '#FFFFFF',
+                        background: pathname === '/portaal/webshop/artikelen' ? '#243B6B' : 'transparent',
+                        boxShadow: pathname === '/portaal/webshop/artikelen' ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                      className={`portaal-sidebar-item ${pathname === '/portaal/webshop/artikelen' ? 'active' : ''}`}
+                    >
+                      <i className="fa-solid fa-shirt" style={{ fontSize: '0.82rem', width: 18, textAlign: 'center', color: pathname === '/portaal/webshop/artikelen' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)' }}></i>
+                      <span>Artikelen</span>
+                    </Link>
+
+                    {/* 3. Instellingen (Enkel zichtbaar voor Groepsleiding) */}
+                    <Link
+                      href="/portaal/webshop/instellingen"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        textDecoration: 'none',
+                        fontSize: '0.86rem',
+                        fontWeight: pathname === '/portaal/webshop/instellingen' ? 800 : 600,
+                        color: '#FFFFFF',
+                        background: pathname === '/portaal/webshop/instellingen' ? '#243B6B' : 'transparent',
+                        boxShadow: pathname === '/portaal/webshop/instellingen' ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                      className={`portaal-sidebar-item ${pathname === '/portaal/webshop/instellingen' ? 'active' : ''}`}
+                    >
+                      <i className="fa-solid fa-gear" style={{ fontSize: '0.82rem', width: 18, textAlign: 'center', color: pathname === '/portaal/webshop/instellingen' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)' }}></i>
+                      <span>Instellingen</span>
+                    </Link>
+
+                  </div>
+                )}
+              </div>
+            )}
+
           </nav>
         </div>
 
@@ -389,7 +660,7 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
                       <div style={{ padding: '8px' }}>
                         {isGroepsleiding && (
                           <Link
-                            href="/portaal/website-beheer?tab=instellingen"
+                            href="/portaal/instellingen"
                             onClick={() => setProfileDropdownOpen(false)}
                             className="portaal-dropdown-btn"
                             style={{

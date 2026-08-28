@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
 import { requireWebshop } from '@/lib/auth'
 
-const VALID_STATUSES = new Set(['pending', 'waiting_approval', 'paid', 'completed', 'cancelled'])
+const VALID_STATUSES = new Set(['niet_betaald', 'betaald', 'afgehaald', 'pending', 'waiting_approval', 'paid', 'completed', 'cancelled'])
 
 export async function PATCH(
   req: NextRequest,

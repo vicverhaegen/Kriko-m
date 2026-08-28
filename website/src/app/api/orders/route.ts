@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
 import { Product, OrderItem } from '@/lib/types'
-import { sendOrderConfirmation, sendWebshopOrderNotification } from '@/lib/email'
+import { sendOrderConfirmation, sendWebshopOrderNotification, sendFinancialOrderNotification } from '@/lib/email'
 
 // Eenvoudige mededeling en bestelnummer (bijv. KM-0001)
 function generateCommunication(orderNumber: number): string {
@@ -11,17 +11,17 @@ function generateCommunication(orderNumber: number): string {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json()
-    const { customer_name, child_name, child_tak, email, cart, website, _t } = body
+    const { customer_name, child_name, child_tak, email, cart, kriko_hp_verify, _sec_token, payment_method } = body
 
-    // Honeypot — bots vullen dit verborgen veld in; mensen niet.
-    if (typeof website === 'string' && website.trim() !== '') {
-      return NextResponse.json({ ok: true }, { status: 200 })
+    // 1. Slimme honeypot check tegen geautomatiseerde web-crawlers
+    if (typeof kriko_hp_verify === 'string' && kriko_hp_verify.trim() !== '') {
+      return NextResponse.json({ error: 'Ongeldig verzoek.' }, { status: 400 })
     }
 
-    // Bot-bescherming: als de bestelling binnen 1.5 seconde is ingediend (of _t ontbreekt), behandel als bot
-    const timestamp = Number(_t)
-    if (!timestamp || Date.now() - timestamp < 1500) {
-      return NextResponse.json({ ok: true }, { status: 200 })
+    // 2. Script-timing check (minimaal 250ms om pure scriptbots te weren)
+    const tokenTime = Number(_sec_token)
+    if (tokenTime && Date.now() - tokenTime < 250) {
+      return NextResponse.json({ error: 'Verzoek te snel verwerkt. Probeer het opnieuw.' }, { status: 400 })
     }
 
     // Basis-validatie (enkel Naam + E-mailadres verplicht)
@@ -38,37 +38,44 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Je winkelmandje is leeg.' }, { status: 400 })
     }
 
+    const paymentMethod: 'overschrijving' | 'cash' = payment_method === 'cash' ? 'cash' : 'overschrijving'
+
     const supabase = createAdminClient()
 
-    // Bank- en instellingsgegevens ophalen (inclusief webshop_email)
+    // Bank- en instellingsgegevens ophalen
     const { data: settings } = await supabase
       .from('settings')
       .select('*')
       .single()
-    const bankIban = settings?.bank_iban || 'BE76 1234 5678 9012'
+    const bankIban = settings?.bank_iban || 'BE59 7360 6413 2626'
     const bankHolder = settings?.bank_holder || 'Scouts Kriko-M vzw'
     const webshopEmail = settings?.webshop_email || 'groepsleiding@kriko-m.be'
+    const webshopFinancialEmail = settings?.webshop_financial_email || ''
 
     // Catalogus ophalen voor server-side prijsvalidatie
     const { data: products } = await supabase
       .from('shop_products')
       .select('id, name, price, sizes, active')
-      .eq('active', true)
     const catalogue = new Map<string, Product>((products as Product[] ?? []).map((p: Product) => [p.id, p]))
 
     // Mandje valideren
     const validatedCart: OrderItem[] = []
     let total = 0
     for (const item of cart) {
+      if (!item) continue
       const prod = catalogue.get(item.id)
-      if (!prod || !item.quantity || item.quantity < 1) continue
-      const sizes: string[] = prod.sizes ?? []
-      const size = sizes.length === 0
-        ? 'Standaard'
-        : sizes.includes(item.size) ? item.size : sizes[0]
-      const qty = Math.min(Number(item.quantity), 50)
-      const price = Number(prod.price)
-      validatedCart.push({ id: item.id, name: prod.name, size, price, quantity: qty })
+      const name = prod?.name || item.name || 'Artikel'
+      const price = prod && prod.price !== undefined ? Number(prod.price) : (Number(item.price) || 0)
+      const qty = Math.min(Math.max(1, Number(item.quantity) || 1), 50)
+      const size = item.size || 'Standaard'
+      
+      validatedCart.push({
+        id: item.id || `item_${Date.now()}`,
+        name,
+        size,
+        price,
+        quantity: qty,
+      })
       total += price * qty
     }
 
@@ -76,26 +83,51 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Je winkelmandje bevat geen geldige artikelen.' }, { status: 400 })
     }
 
-    // Bestelling aanmaken
-    const { data: inserted, error: insertError } = await supabase
+    // Bestelling aanmaken - probeer met 'niet_betaald', val terug op 'pending' indien schema constraint nog niet gemigreerd is
+    let inserted: { id: string; order_number?: number; order_ref?: string } | null = null
+    let insertError: Error | { message?: string } | null = null
+
+    const orderPayload = {
+      status: 'niet_betaald',
+      payment_method: paymentMethod,
+      customer_name: customer_name.trim(),
+      child_name: child_name?.trim() || '',
+      child_tak: child_tak || '',
+      email: email.trim(),
+      items: validatedCart,
+      total,
+      communication: '',
+    }
+
+    const firstAttempt = await supabase
       .from('orders')
-      .insert({
-        status: 'pending',
-        customer_name: customer_name.trim(),
-        child_name: child_name?.trim() || '',
-        child_tak: child_tak || '',
-        email: email.trim(),
-        items: validatedCart,
-        total,
-        communication: '',
-      })
+      .insert(orderPayload)
       .select('id, order_number, order_ref')
       .single()
 
+    if (firstAttempt.error) {
+      // Als de constraint of kolom faalt vóór de SQL migratie, probeer fallback
+      const fallbackAttempt = await supabase
+        .from('orders')
+        .insert({
+          ...orderPayload,
+          status: 'pending',
+        })
+        .select('id, order_number, order_ref')
+        .single()
+      
+      inserted = fallbackAttempt.data
+      insertError = fallbackAttempt.error
+    } else {
+      inserted = firstAttempt.data
+      insertError = firstAttempt.error
+    }
+
     if (insertError || !inserted) throw insertError ?? new Error('Insert mislukt')
 
-    // Eenvoudige mededeling en order referentie KM-0001
-    const communication = generateCommunication(inserted.order_number)
+    // Eenvoudige gestructureerde mededeling en order referentie KM-0001
+    const orderNum = inserted.order_number || Math.floor(1000 + Math.random() * 9000)
+    const communication = generateCommunication(orderNum)
     const orderRef = communication
 
     const { error: updateError } = await supabase
@@ -103,7 +135,9 @@ export async function POST(req: NextRequest) {
       .update({ communication })
       .eq('id', inserted.id)
 
-    if (updateError) throw updateError
+    if (updateError) {
+      console.warn('Kon communication niet updaten op order:', updateError)
+    }
 
     // 1. E-mail naar koper
     try {
@@ -116,6 +150,7 @@ export async function POST(req: NextRequest) {
         communication,
         bankIban,
         bankHolder,
+        paymentMethod,
       })
     } catch (mailErr) {
       console.error('Koper bevestigingsmail mislukt:', mailErr)
@@ -133,9 +168,29 @@ export async function POST(req: NextRequest) {
         communication,
         bankIban,
         bankHolder,
+        paymentMethod,
       })
     } catch (orderMailErr) {
       console.error('Notificatiemail mislukt:', orderMailErr)
+    }
+
+    // 3. Notificatiemail naar financieel verantwoordelijke (enkel bij overschrijving)
+    if (paymentMethod === 'overschrijving' && webshopFinancialEmail) {
+      try {
+        await sendFinancialOrderNotification({
+          to: webshopFinancialEmail,
+          orderRef,
+          customerName: customer_name.trim(),
+          email: email.trim(),
+          items: validatedCart,
+          total,
+          communication,
+          bankIban,
+          bankHolder,
+        })
+      } catch (finMailErr) {
+        console.error('Financiële notificatiemail mislukt:', finMailErr)
+      }
     }
 
     return NextResponse.json({
@@ -146,6 +201,7 @@ export async function POST(req: NextRequest) {
       bank_iban: bankIban,
       bank_holder: bankHolder,
       webshop_email: webshopEmail,
+      payment_method: paymentMethod,
     })
   } catch (err) {
     console.error('Orders API error:', err)

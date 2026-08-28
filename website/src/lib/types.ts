@@ -22,6 +22,7 @@ export interface Settings {
   bank_holder: string
   contact_email: string
   webshop_email?: string
+  webshop_financial_email?: string
   contact_phone: string
   contact_address: string
   alert_message: string
@@ -126,7 +127,8 @@ export interface Order {
   id: string
   order_number: number
   order_ref: string
-  status: 'pending' | 'waiting_approval' | 'paid' | 'completed' | 'cancelled'
+  status: 'niet_betaald' | 'betaald' | 'afgehaald' | 'pending' | 'waiting_approval' | 'paid' | 'completed' | 'cancelled'
+  payment_method?: 'overschrijving' | 'cash'
   customer_name: string
   child_name: string
   child_tak: string

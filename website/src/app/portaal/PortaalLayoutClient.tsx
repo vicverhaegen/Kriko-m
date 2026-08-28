@@ -95,8 +95,9 @@ export default function PortaalLayoutClient({ children, naam, role, settings }: 
     if (path === '/portaal/echos') return 'Kriko Echo'
     if (path === '/portaal/algemene-info') return 'Documenten & Links'
     if (path === '/portaal/leiding/agenda') return 'Kalender & Activiteiten'
-    if (path === '/portaal/website-beheer') return 'Website Beheer'
+    if (path.startsWith('/portaal/instellingen')) return 'Portaalinstellingen'
     if (path === '/portaal/webshop/artikelen') return 'Webshop Artikelen'
+    if (path === '/portaal/webshop/instellingen') return 'Webshop Instellingen'
     if (path.startsWith('/portaal/webshop')) return 'Webshop Bestellingen'
     return 'Leidingsportaal'
   }
@@ -213,21 +214,7 @@ export default function PortaalLayoutClient({ children, naam, role, settings }: 
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
                 }}>
-                  {pathname === '/portaal/website-beheer' && searchParams.get('tab') === 'instellingen' ? (
-                    <>
-                      <Link
-                        href="/portaal/website-beheer"
-                        className="portaal-breadcrumb-parent"
-                        style={{ color: '#243B6B', textDecoration: 'none', fontWeight: 800 }}
-                      >
-                        Website Beheer
-                      </Link>
-                      <span className="portaal-breadcrumb-sep" style={{ color: '#94A3B8', fontWeight: 400 }}>/</span>
-                      <span>Portaal Instellingen</span>
-                    </>
-                  ) : (
-                    getPageTitle(pathname)
-                  )}
+                  {getPageTitle(pathname)}
                 </h1>
 
                 <div id="portaal-topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }} />

@@ -151,8 +151,9 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
     if (pathname === '/portaal/echos') return 'Kriko Echo Beheer'
     if (pathname === '/portaal/algemene-info') return 'Documenten & Links'
     if (pathname === '/portaal/leiding/agenda') return 'Agenda'
-    if (pathname === '/portaal/website-beheer') return 'Website Beheer'
+    if (pathname.startsWith('/portaal/instellingen')) return 'Portaalinstellingen'
     if (pathname === '/portaal/webshop/artikelen') return 'Webshop Artikelen'
+    if (pathname === '/portaal/webshop/instellingen') return 'Webshop Instellingen'
     if (pathname.startsWith('/portaal/webshop')) return 'Webshop Bestellingen'
     return 'Leidingportaal'
   }
@@ -201,7 +202,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
 
           <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
             <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'hsl(345, 10%, 45%)' }}>
-              Leidingportaal
+              {isWebshop ? 'Webshop' : 'Leidingportaal'}
             </span>
             <span style={{ color: 'hsl(345, 10%, 45%)', fontSize: '0.8rem' }}>/</span>
             <h1 style={{

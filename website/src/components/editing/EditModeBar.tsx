@@ -115,7 +115,7 @@ export default function EditModeBar() {
         {/* Right side actions */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <Link
-            href="/portaal/website-beheer"
+            href="/portaal/home"
             style={{
               color: '#CBD5E1',
               textDecoration: 'none',

@@ -1,7 +1,6 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import ExcelJS from 'exceljs'
 import { Settings } from '@/lib/types'
 import CopyButton from '@/components/CopyButton'
 import ConfirmDialog from '../_components/ConfirmDialog'
@@ -16,10 +15,15 @@ interface OrderItem {
 interface AdminOrder {
   id: string
   order_ref?: string
+  order_number?: number
   customer_name: string
+  child_name?: string
+  child_tak?: string
   email: string
   items: OrderItem[]
   total: number
+  status?: string
+  payment_method?: 'overschrijving' | 'cash'
   created_at?: string
 }
 
@@ -36,23 +40,44 @@ interface ShopProduct {
 interface Props {
   initialSettings: Settings
   role?: string
-  activeTab: 'bestellingen' | 'artikelen'
+  activeTab: 'bestellingen' | 'artikelen' | 'instellingen'
+  initialOrders?: AdminOrder[]
+  initialShopProducts?: ShopProduct[]
 }
 
-export default function WebshopPageClient({ initialSettings, role: _role, activeTab }: Props) {
-  const [webshopEmail, setWebshopEmail] = useState(initialSettings.webshop_email || '')
-  const [saving, setSaving] = useState(false)
+function normalizeStatus(status?: string): 'niet_betaald' | 'betaald' | 'afgehaald' {
+  if (!status) return 'niet_betaald'
+  if (status === 'betaald' || status === 'paid') return 'betaald'
+  if (status === 'afgehaald' || status === 'completed') return 'afgehaald'
+  return 'niet_betaald'
+}
+
+export default function WebshopPageClient({
+  initialSettings,
+  role: _role,
+  activeTab,
+  initialOrders = [],
+  initialShopProducts = [],
+}: Props) {
+  // Settings State
+  const [webshopEmail, setWebshopEmail] = useState(initialSettings?.webshop_email || '')
+  const [webshopFinancialEmail, setWebshopFinancialEmail] = useState(initialSettings?.webshop_financial_email || '')
+  const [savingSettings, setSavingSettings] = useState(false)
   const [flashMessage, setFlashMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
-  // Orders State
-  const [orders, setOrders] = useState<AdminOrder[]>([])
+  // Orders State (Direct geïnitialiseerd via SSR voor 0ms laadtijd!)
+  const [orders, setOrders] = useState<AdminOrder[]>(initialOrders)
   const [loadingOrders, setLoadingOrders] = useState(false)
   const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null)
+  const [openActionMenuId, setOpenActionMenuId] = useState<string | null>(null)
+  const [openStatusMenuId, setOpenStatusMenuId] = useState<string | null>(null)
 
-  // Shop Products State
-  const [shopProducts, setShopProducts] = useState<ShopProduct[]>([])
+  // Shop Products State (Direct geïnitialiseerd via SSR voor 0ms laadtijd!)
+  const [shopProducts, setShopProducts] = useState<ShopProduct[]>(initialShopProducts)
   const [loadingShopProducts, setLoadingShopProducts] = useState(false)
-  const [selectedProductId, setSelectedProductId] = useState<string | null>(null)
+  const [selectedProductId, setSelectedProductId] = useState<string | null>(
+    initialShopProducts.length > 0 ? initialShopProducts[0].id : null
+  )
   const [savingProduct, setSavingProduct] = useState(false)
   const [uploadingProductPhoto, setUploadingProductPhoto] = useState(false)
   const [confirmDialog, setConfirmDialog] = useState<{ title?: string; message: string; confirmLabel?: string; danger?: boolean; onConfirm: () => void } | null>(null)
@@ -62,25 +87,50 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
     setTimeout(() => setFlashMessage(null), 4000)
   }, [])
 
+  // Close open action menu or status menu on outside click
+  useEffect(() => {
+    if (!openActionMenuId && !openStatusMenuId) return
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement
+      if (!target.closest('.order-action-menu-container')) {
+        setOpenActionMenuId(null)
+      }
+      if (!target.closest('.order-status-menu-container')) {
+        setOpenStatusMenuId(null)
+      }
+    }
+    window.addEventListener('click', handleClickOutside)
+    return () => window.removeEventListener('click', handleClickOutside)
+  }, [openActionMenuId, openStatusMenuId])
+
   const fetchOrders = useCallback(async () => {
-    setLoadingOrders(true)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000)
     try {
-      const res = await fetch('/api/admin/orders')
+      const res = await fetch('/api/admin/orders', { signal: controller.signal })
+      clearTimeout(timeoutId)
       if (res.ok) {
         const data = await res.json()
         setOrders(data)
       }
     } catch (err) {
-      console.error('Fout bij ophalen bestellingen:', err)
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Ophalen bestellingen time-out')
+      } else {
+        console.error('Fout bij ophalen bestellingen:', err)
+      }
     } finally {
+      clearTimeout(timeoutId)
       setLoadingOrders(false)
     }
   }, [])
 
   const fetchShopProducts = useCallback(async () => {
-    setLoadingShopProducts(true)
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000)
     try {
-      const res = await fetch('/api/admin/shop-products')
+      const res = await fetch('/api/admin/shop-products', { signal: controller.signal })
+      clearTimeout(timeoutId)
       if (res.ok) {
         const data = await res.json()
         setShopProducts(data)
@@ -89,21 +139,57 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
         }
       }
     } catch (err) {
-      console.error(err)
+      if (err instanceof Error && err.name === 'AbortError') {
+        console.warn('Ophalen artikelen time-out')
+      } else {
+        console.error(err)
+      }
     } finally {
+      clearTimeout(timeoutId)
       setLoadingShopProducts(false)
     }
   }, [])
 
+  // Sync / refresh bij tabwissel
   useEffect(() => {
-    fetchOrders()
-    fetchShopProducts()
-  }, [fetchOrders, fetchShopProducts])
+    if (activeTab === 'bestellingen' && orders.length === 0) fetchOrders()
+    if (activeTab === 'artikelen' && shopProducts.length === 0) fetchShopProducts()
+  }, [activeTab, orders.length, shopProducts.length, fetchOrders, fetchShopProducts])
+
+  // Optimistic status update: UI verandert onmiddellijk (0ms), server update in de achtergrond
+  async function handleStatusChange(orderId: string, newStatus: 'niet_betaald' | 'betaald' | 'afgehaald') {
+    const previousOrders = [...orders]
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus } : o))
+    setUpdatingOrderId(orderId)
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 8000)
+
+    try {
+      const res = await fetch(`/api/admin/orders/${orderId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+      if (!res.ok) throw new Error('Status bijwerken mislukt')
+    } catch (err: unknown) {
+      clearTimeout(timeoutId)
+      // Rollback naar vorige staat indien fout
+      setOrders(previousOrders)
+      showNotification('error', err instanceof Error ? err.message : 'Fout bij wijzigen status')
+    } finally {
+      clearTimeout(timeoutId)
+      setUpdatingOrderId(null)
+    }
+  }
 
   function handleOrderDelete(orderId: string, orderRef: string) {
+    setOpenActionMenuId(null)
     setConfirmDialog({
       title: 'Bestelling verwijderen',
-      message: `Weet je zeker dat je bestelling ${orderRef} wilt verwijderen?`,
+      message: `Weet je zeker dat je bestelling ${orderRef} wilt verwijderen? Dit kan niet ongedaan worden gemaakt.`,
       confirmLabel: 'Verwijderen',
       danger: true,
       onConfirm: async () => {
@@ -124,19 +210,22 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
   }
 
   async function handleSaveSettings() {
-    setSaving(true)
+    setSavingSettings(true)
     try {
       const res = await fetch('/api/admin/settings', {
-        method: 'POST',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ webshop_email: webshopEmail }),
+        body: JSON.stringify({
+          webshop_email: webshopEmail.trim(),
+          webshop_financial_email: webshopFinancialEmail.trim(),
+        }),
       })
-      if (!res.ok) throw new Error('Opslaan mislukt')
-      showNotification('success', 'E-mailadres voor bestellingen opgeslagen!')
+      if (!res.ok) throw new Error('Opslaan van instellingen mislukt')
+      showNotification('success', 'Webshop instellingen succesvol opgeslagen!')
     } catch (err: unknown) {
       showNotification('error', err instanceof Error ? err.message : 'Fout bij opslaan')
     } finally {
-      setSaving(false)
+      setSavingSettings(false)
     }
   }
 
@@ -265,61 +354,446 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
     })
   }
 
-  async function exportOrdersToExcel() {
-    if (orders.length === 0) {
-      showNotification('error', 'Er zijn geen bestellingen om te exporteren.')
-      return
+  // State for expanded completed orders
+  const [expandedCompletedIds, setExpandedCompletedIds] = useState<string[]>([])
+
+  const toggleCompletedOrderExpand = (orderId: string) => {
+    setExpandedCompletedIds(prev =>
+      prev.includes(orderId) ? prev.filter(id => id !== orderId) : [...prev, orderId]
+    )
+  }
+
+  // Split orders into active and completed
+  const activeOrders = orders.filter(o => normalizeStatus(o.status) !== 'afgehaald')
+  const completedOrders = orders.filter(o => normalizeStatus(o.status) === 'afgehaald')
+
+  const renderOrderCard = (ord: AdminOrder, isCompletedSection = false) => {
+    const curStatus = normalizeStatus(ord.status)
+    const isCash = ord.payment_method === 'cash'
+    const orderRef = ord.order_ref || (ord.order_number ? `KM-${String(ord.order_number).padStart(4, '0')}` : `KM-${ord.id.slice(0, 6)}`)
+    const itemsList = Array.isArray(ord.items) ? ord.items : []
+
+    const isCompleted = curStatus === 'afgehaald'
+    const isPaid = curStatus === 'betaald'
+    const isExpanded = !isCompletedSection || expandedCompletedIds.includes(ord.id)
+
+    // Inklapbare rij voor Behandelde Bestellingen wanneer ingeklapt
+    if (isCompletedSection && !isExpanded) {
+      return (
+        <div
+          key={ord.id}
+          onClick={() => toggleCompletedOrderExpand(ord.id)}
+          style={{
+            backgroundColor: '#FFFFFF',
+            border: '1.5px solid #E2E8F0',
+            borderRadius: 14,
+            padding: '14px 20px',
+            boxShadow: '0 1px 3px rgba(0,0,0,0.02)',
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: 12,
+            cursor: 'pointer',
+            transition: 'all 0.15s ease',
+          }}
+          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#F8FAFC')}
+          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = '#FFFFFF')}
+        >
+          {/* Linkerkant: Code — Naam + Datum */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '1.1rem', fontWeight: 900, color: '#162544', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
+              {orderRef} — {ord.customer_name}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 500 }}>
+              {ord.created_at ? new Date(ord.created_at).toLocaleString('nl-BE', { dateStyle: 'medium', timeStyle: 'short' }) : ''}
+            </span>
+          </div>
+
+          {/* Rechterkant: Prijs + Chevron */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+            <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#650B19', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
+              €{(ord.total || 0).toFixed(2).replace('.', ',')}
+            </strong>
+            <div style={{
+              width: 28,
+              height: 28,
+              borderRadius: 6,
+              backgroundColor: '#F1F5F9',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              color: '#475569',
+              fontSize: '0.75rem',
+            }}>
+              <i className="fa-solid fa-chevron-down"></i>
+            </div>
+          </div>
+        </div>
+      )
     }
 
-    try {
-      const workbook = new ExcelJS.Workbook()
-      const worksheet = workbook.addWorksheet('Bestellingen Webshop')
+    let badgeBg = '#FEE2E2'
+    let badgeColor = '#991B1B'
+    let badgeBorder = '#FCA5A5'
+    let currentLabel = isCash ? 'Niet opgehaald' : 'Niet betaald'
 
-      worksheet.columns = [
-        { header: 'Bestelnr', key: 'ref', width: 16 },
-        { header: 'Datum', key: 'date', width: 20 },
-        { header: 'Koper', key: 'customer', width: 26 },
-        { header: 'E-mailadres', key: 'email', width: 30 },
-        { header: 'Bestelde Artikelen', key: 'items', width: 45 },
-        { header: 'Totaalbedrag (€)', key: 'total', width: 16 },
-      ]
-
-      const headerRow = worksheet.getRow(1)
-      headerRow.font = { bold: true, color: { argb: 'FFFFFF' } }
-      headerRow.fill = {
-        type: 'pattern',
-        pattern: 'solid',
-        fgColor: { argb: '162544' },
-      }
-      headerRow.alignment = { vertical: 'middle', horizontal: 'center' }
-
-      orders.forEach((ord) => {
-        const itemsStr = Array.isArray(ord.items)
-          ? ord.items.map((i: OrderItem) => `${i.quantity}x ${i.name} (${i.size})`).join(', ')
-          : ''
-
-        worksheet.addRow({
-          ref: ord.order_ref || `KM-${ord.id.slice(0, 6)}`,
-          date: ord.created_at ? new Date(ord.created_at).toLocaleString('nl-BE') : '',
-          customer: ord.customer_name || '',
-          email: ord.email || '',
-          items: itemsStr,
-          total: (ord.total || 0).toFixed(2).replace('.', ','),
-        })
-      })
-
-      const buffer = await workbook.xlsx.writeBuffer()
-      const blob = new Blob([buffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' })
-      const url = window.URL.createObjectURL(blob)
-      const a = document.createElement('a')
-      a.href = url
-      a.download = `kriko_m_bestellingen_${new Date().toISOString().slice(0, 10)}.xlsx`
-      a.click()
-      window.URL.revokeObjectURL(url)
-    } catch (err) {
-      console.error('Fout bij exporteren Excel:', err)
-      showNotification('error', 'Er is een fout opgetreden bij het genereren van het Excel-bestand.')
+    if (isCompleted) {
+      badgeBg = '#DCFCE7'
+      badgeColor = '#15803D'
+      badgeBorder = '#86EFAC'
+      currentLabel = 'Opgehaald'
+    } else if (isPaid) {
+      badgeBg = '#EBF0F9'
+      badgeColor = '#1E3A8A'
+      badgeBorder = '#CBD5E1'
+      currentLabel = 'Betaald'
     }
+
+    const statusOptions = isCash
+      ? [
+          { value: 'niet_betaald' as const, label: 'Niet opgehaald', dotColor: '#DC2626', activeBg: '#FEF2F2', activeColor: '#991B1B' },
+          { value: 'afgehaald' as const, label: 'Opgehaald', dotColor: '#16A34A', activeBg: '#F0FDF4', activeColor: '#15803D' },
+        ]
+      : [
+          { value: 'niet_betaald' as const, label: 'Niet betaald', dotColor: '#DC2626', activeBg: '#FEF2F2', activeColor: '#991B1B' },
+          { value: 'betaald' as const, label: 'Betaald', dotColor: '#2563EB', activeBg: '#EBF0F9', activeColor: '#1E3A8A' },
+          { value: 'afgehaald' as const, label: 'Opgehaald', dotColor: '#16A34A', activeBg: '#F0FDF4', activeColor: '#15803D' },
+        ]
+
+    return (
+      <div
+        key={ord.id}
+        style={{
+          backgroundColor: '#FFFFFF',
+          border: '1.5px solid #E2E8F0',
+          borderRadius: 16,
+          padding: '18px 22px',
+          boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 14,
+          position: 'relative',
+        }}
+      >
+        {/* 1. TITEL: Code KM-xxxx — Naam van de persoon (met dunne divider onderaan) */}
+        <div
+          onClick={isCompletedSection ? () => toggleCompletedOrderExpand(ord.id) : undefined}
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            flexWrap: 'wrap',
+            gap: 10,
+            cursor: isCompletedSection ? 'pointer' : 'default',
+            userSelect: 'none',
+            borderBottom: '1px solid #F1F5F9',
+            paddingBottom: 10,
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
+            <span style={{ fontSize: '1.2rem', fontWeight: 900, color: '#162544', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
+              {orderRef} — {ord.customer_name}
+            </span>
+            <span style={{ fontSize: '0.8rem', color: '#94A3B8', fontWeight: 500 }}>
+              {ord.created_at ? new Date(ord.created_at).toLocaleString('nl-BE', { dateStyle: 'medium', timeStyle: 'short' }) : ''}
+            </span>
+          </div>
+
+          {/* Rechter acties: Chevron omhoog + 3-puntjes menu */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            {isCompletedSection && (
+              <div
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 6,
+                  backgroundColor: '#F1F5F9',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#475569',
+                  fontSize: '0.75rem',
+                }}
+              >
+                <i className="fa-solid fa-chevron-up"></i>
+              </div>
+            )}
+
+            {/* 3-puntjes optiemenu */}
+            <div
+              className="order-action-menu-container"
+              style={{ position: 'relative' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                type="button"
+                onClick={() => setOpenActionMenuId(openActionMenuId === ord.id ? null : ord.id)}
+                title="Opties"
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 6,
+                  backgroundColor: openActionMenuId === ord.id ? '#E2E8F0' : 'transparent',
+                  border: '1px solid #E2E8F0',
+                  color: '#64748B',
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  fontSize: '0.85rem',
+                }}
+              >
+                <i className="fa-solid fa-ellipsis-vertical"></i>
+              </button>
+
+            {openActionMenuId === ord.id && (
+              <div
+                style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 4px)',
+                  right: 0,
+                  width: 180,
+                  backgroundColor: '#FFFFFF',
+                  borderRadius: 10,
+                  boxShadow: '0 8px 24px rgba(0,0,0,0.15)',
+                  border: '1px solid #CBD5E1',
+                  zIndex: 50,
+                  padding: 4,
+                }}
+              >
+                <button
+                  type="button"
+                  onClick={() => handleOrderDelete(ord.id, orderRef)}
+                  style={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    padding: '7px 10px',
+                    borderRadius: 6,
+                    border: 'none',
+                    backgroundColor: 'transparent',
+                    color: '#DC2626',
+                    fontWeight: 700,
+                    fontSize: '0.82rem',
+                    cursor: 'pointer',
+                    textAlign: 'left',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#FDF0F2')}
+                  onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                >
+                  <i className="fa-solid fa-trash" style={{ fontSize: '0.78rem' }}></i>
+                  <span>Bestelling Verwijderen</span>
+                </button>
+              </div>
+            )}
+            </div>
+          </div>
+        </div>
+
+        {/* 2. CONTACTGEGEVENS (Direct onder de titel) */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexWrap: 'wrap', fontSize: '0.88rem', color: '#475569' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+            <i className="fa-solid fa-envelope" style={{ color: '#64748B', fontSize: '0.85rem' }}></i>
+            <CopyButton text={ord.email} variant="inline">
+              {ord.email}
+            </CopyButton>
+          </div>
+
+          {ord.child_name && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: 6, color: '#475569' }}>
+              <i className="fa-solid fa-child" style={{ color: '#64748B', fontSize: '0.85rem' }}></i>
+              <span>Voor lid: <strong>{ord.child_name}</strong> {ord.child_tak ? `(${ord.child_tak})` : ''}</span>
+            </div>
+          )}
+        </div>
+
+        {/* 3. APARTE SECTIE VOOR HET GELD & DE BESTELLING */}
+        <div style={{
+          backgroundColor: '#F8FAFC',
+          borderRadius: 12,
+          border: '1.5px solid #E2E8F0',
+          padding: '14px 18px',
+          display: 'flex',
+          flexDirection: 'column',
+          gap: 12,
+        }}>
+          {/* Header van het geldblok: Betaalmethode + Custom Status Dropdown Popover */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 10, borderBottom: '1px solid #E2E8F0', paddingBottom: 10 }}>
+            
+            {/* Betaalmethode (Overschrijving of Cash) */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+              {isCash ? (
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 10px',
+                  borderRadius: 8,
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                  backgroundColor: '#EEF5F1',
+                  color: '#166534',
+                  border: '1px solid #C2D9C9',
+                }}>
+                  <i className="fa-solid fa-money-bill-wave"></i>
+                  <span>Contant / Cash</span>
+                </span>
+              ) : (
+                <span style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 10px',
+                  borderRadius: 8,
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                  backgroundColor: '#EBF0F9',
+                  color: '#1E3A8A',
+                  border: '1px solid #CBD5E1',
+                }}>
+                  <i className="fa-solid fa-building-columns"></i>
+                  <span>Bankoverschrijving</span>
+                </span>
+              )}
+            </div>
+
+            {/* Custom Status Dropdown Popover Menu */}
+            <div className="order-status-menu-container" style={{ position: 'relative' }}>
+              <button
+                type="button"
+                disabled={updatingOrderId === ord.id}
+                onClick={() => setOpenStatusMenuId(openStatusMenuId === ord.id ? null : ord.id)}
+                style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 6,
+                  padding: '4px 10px',
+                  borderRadius: 8,
+                  fontSize: '0.8rem',
+                  fontWeight: 800,
+                  cursor: updatingOrderId === ord.id ? 'wait' : 'pointer',
+                  backgroundColor: badgeBg,
+                  color: badgeColor,
+                  border: `1px solid ${badgeBorder}`,
+                  transition: 'all 0.15s ease',
+                }}
+              >
+                {updatingOrderId === ord.id ? (
+                  <>
+                    <i className="fa-solid fa-spinner fa-spin" style={{ fontSize: '0.72rem' }}></i>
+                    <span>Opslaan…</span>
+                  </>
+                ) : (
+                  <>
+                    <span style={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: badgeColor }}></span>
+                    <span>{currentLabel}</span>
+                    <i
+                      className="fa-solid fa-chevron-down"
+                      style={{
+                        fontSize: '0.62rem',
+                        transition: 'transform 0.15s ease',
+                        transform: openStatusMenuId === ord.id ? 'rotate(180deg)' : 'none',
+                        marginLeft: 2,
+                      }}
+                    ></i>
+                  </>
+                )}
+              </button>
+
+              {openStatusMenuId === ord.id && (
+                <div
+                  style={{
+                    position: 'absolute',
+                    top: 'calc(100% + 5px)',
+                    right: 0,
+                    width: 170,
+                    backgroundColor: '#FFFFFF',
+                    borderRadius: 12,
+                    boxShadow: '0 10px 26px rgba(0,0,0,0.12), 0 2px 6px rgba(0,0,0,0.04)',
+                    border: '1px solid #CBD5E1',
+                    zIndex: 60,
+                    padding: 5,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3,
+                  }}
+                >
+                  {statusOptions.map((opt) => {
+                    const isSelected = curStatus === opt.value
+                    return (
+                      <button
+                        key={opt.value}
+                        type="button"
+                        onClick={() => {
+                          setOpenStatusMenuId(null)
+                          if (!isSelected) handleStatusChange(ord.id, opt.value)
+                        }}
+                        style={{
+                          width: '100%',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '8px 10px',
+                          borderRadius: 8,
+                          border: 'none',
+                          backgroundColor: isSelected ? opt.activeBg : 'transparent',
+                          color: isSelected ? opt.activeColor : '#334155',
+                          fontWeight: isSelected ? 800 : 600,
+                          fontSize: '0.82rem',
+                          cursor: 'pointer',
+                          textAlign: 'left',
+                          transition: 'all 0.12s ease',
+                        }}
+                        onMouseEnter={(e) => {
+                          if (!isSelected) e.currentTarget.style.backgroundColor = '#F8FAFC'
+                        }}
+                        onMouseLeave={(e) => {
+                          if (!isSelected) e.currentTarget.style.backgroundColor = 'transparent'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                          <span style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: opt.dotColor }}></span>
+                          <span>{opt.label}</span>
+                        </div>
+                        {isSelected && <i className="fa-solid fa-check" style={{ fontSize: '0.75rem', color: opt.activeColor }}></i>}
+                      </button>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+
+          </div>
+
+          {/* Bestelde Artikelen */}
+          <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+            {itemsList.map((item: OrderItem, idx: number) => (
+              <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.88rem' }}>
+                <span style={{ color: '#162544', fontWeight: 600 }}>
+                  <strong style={{ color: '#162544' }}>{item.quantity}×</strong> {item.name} {item.size && item.size !== '-' && item.size !== 'Standaard' ? <span style={{ color: '#64748B', fontSize: '0.82rem' }}>({item.size})</span> : ''}
+                </span>
+                <span style={{ fontWeight: 700, color: '#334155' }}>
+                  €{(item.price * item.quantity).toFixed(2).replace('.', ',')}
+                </span>
+              </div>
+            ))}
+          </div>
+
+          {/* Eindtotaal */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderTop: '1.5px solid #E2E8F0', paddingTop: 8 }}>
+            <span style={{ fontSize: '0.86rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+              Eindtotaal
+            </span>
+            <strong style={{ fontSize: '1.15rem', fontWeight: 900, color: '#650B19', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
+              €{(ord.total || 0).toFixed(2).replace('.', ',')}
+            </strong>
+          </div>
+
+        </div>
+
+      </div>
+    )
   }
 
   return (
@@ -341,181 +815,102 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
           border: `1.5px solid ${flashMessage.type === 'success' ? '#CBD5E1' : '#E0C0C4'}`,
           boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
         }}>
+          <i className={`fa-solid ${flashMessage.type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}`}></i>
           <span>{flashMessage.text}</span>
         </div>
       )}
 
-      {/* Main Container */}
-      <div style={{ backgroundColor: '#ffffff', borderRadius: 24, border: '1px solid #CBD5E1', padding: '28px 32px', color: '#162544', boxShadow: '0 12px 32px rgba(0, 0, 0, 0.05)', width: '100%' }}>
-        
-        {/* Header Title Bar */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #E2E8F0', paddingBottom: 16, marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
-          <div>
-            <h1 style={{ margin: '0 0 4px', fontSize: '1.65rem', fontWeight: 900, color: '#162544', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
-              {activeTab === 'bestellingen' ? '📦 Alle Bestellingen' : '👕 Artikelen & Assortiment'}
-            </h1>
-            <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748B' }}>
-              {activeTab === 'bestellingen'
-                ? 'Overzicht van alle ingekomen bestellingen in de webshop. Exporteer eenvoudig naar Excel.'
-                : 'Beheer artikelen, prijzen, maten en foto\'s van de webshop en uniformen.'}
-            </p>
-          </div>
-
-          {activeTab === 'bestellingen' && (
-            <button
-              type="button"
-              onClick={exportOrdersToExcel}
-              style={{
-                padding: '11px 22px',
-                borderRadius: 10,
-                backgroundColor: '#243B6B',
-                color: '#fff',
-                border: 'none',
-                fontWeight: 900,
-                fontSize: '0.92rem',
-                cursor: 'pointer',
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: 10,
-                boxShadow: '0 4px 14px rgba(128, 0, 32, 0.28)',
-                transition: 'all 0.2s ease',
-              }}
-              className="action-card-hover"
-            >
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
-                <polyline points="14 2 14 8 20 8"></polyline>
-                <line x1="16" y1="13" x2="8" y2="13"></line>
-                <line x1="16" y1="17" x2="8" y2="17"></line>
-                <polyline points="10 9 9 9 8 9"></polyline>
-              </svg>
-              <span>Exporteer naar Excel (.xlsx)</span>
-            </button>
-          )}
-        </div>
-
-        {/* TAB 1: ALLE BESTELLINGEN */}
-        {activeTab === 'bestellingen' && (
-          <div>
-            {loadingOrders ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#64748B', fontWeight: 600 }}>Bestellingen laden…</div>
-            ) : orders.length === 0 ? (
-              <div style={{ backgroundColor: '#F8FAFC', border: '1.5px dashed #CBD5E1', borderRadius: 14, padding: 36, textAlign: 'center', color: '#64748B' }}>
-                <strong style={{ display: 'block', fontSize: '1rem', color: '#162544', marginBottom: 4 }}>Er zijn nog geen bestellingen geplaatst.</strong>
-                <span style={{ fontSize: '0.86rem' }}>Wanneer een koper een bestelling plaatst via de webshop, verschijnt deze hier direct in de lijst.</span>
-              </div>
-            ) : (
-              <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-                
-                {/* Top Count Bar */}
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', backgroundColor: '#F8FAFC', padding: '12px 18px', borderRadius: 12, border: '1.5px solid #E2E8F0' }}>
-                  <span style={{ fontSize: '0.88rem', fontWeight: 800, color: '#162544' }}>
-                    Totaal {orders.length} bestelling{orders.length === 1 ? '' : 'en'}
-                  </span>
+      {/* ======================================================== */}
+      {/* TAB 1: BESTELLINGEN                                     */}
+      {/* ======================================================== */}
+      {activeTab === 'bestellingen' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 28, width: '100%' }}>
+          {loadingOrders ? (
+            <div style={{ backgroundColor: '#ffffff', borderRadius: 24, border: '1px solid #CBD5E1', padding: '40px 32px', textAlign: 'center', color: '#64748B', fontWeight: 600, boxShadow: '0 12px 32px rgba(0, 0, 0, 0.05)' }}>
+              <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 8 }}></i> Bestellingen laden…
+            </div>
+          ) : orders.length === 0 ? (
+            <div style={{ backgroundColor: '#ffffff', borderRadius: 24, border: '1px solid #CBD5E1', padding: '36px 32px', textAlign: 'center', color: '#64748B', boxShadow: '0 12px 32px rgba(0, 0, 0, 0.05)' }}>
+              <strong style={{ display: 'block', fontSize: '1.05rem', color: '#162544', marginBottom: 6 }}>Er zijn nog geen bestellingen geplaatst.</strong>
+              <span style={{ fontSize: '0.88rem' }}>Wanneer een koper een bestelling plaatst via de webshop, verschijnt deze hier direct in de lijst.</span>
+            </div>
+          ) : (
+            <>
+              {/* 1. RIJ: ACTIEVE BESTELLINGEN */}
+              <div style={{ backgroundColor: '#ffffff', borderRadius: 24, border: '1px solid #CBD5E1', padding: '28px 32px', color: '#162544', boxShadow: '0 12px 32px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, borderBottom: '1.5px solid #F1F5F9', paddingBottom: 14 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: '#EBF0F9', color: '#243B6B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
+                    <i className="fa-solid fa-clock"></i>
+                  </div>
+                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#162544', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
+                    Actieve Bestellingen
+                  </h2>
                 </div>
 
-                {orders.map((ord) => (
-                  <div key={ord.id} style={{ backgroundColor: '#fff', border: '1.5px solid #E2E8F0', borderRadius: 16, padding: 20, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-                    
-                    {/* Order Header Row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 12, borderBottom: '1px solid #E2E8F0', paddingBottom: 12, marginBottom: 14 }}>
-                      <div>
-                        <strong style={{ fontSize: '1.15rem', color: '#162544', marginRight: 12 }}>
-                          Bestelling {ord.order_ref || `KM-${ord.id.slice(0, 6)}`}
-                        </strong>
-                        <span style={{ fontSize: '0.84rem', color: '#64748B', fontWeight: 600 }}>
-                          {ord.created_at ? new Date(ord.created_at).toLocaleString('nl-BE', { dateStyle: 'medium', timeStyle: 'short' }) : ''}
-                        </span>
-                      </div>
-                    </div>
-
-                    {/* Customer Info Box */}
-                    <div style={{ marginBottom: 16 }}>
-                      <div style={{ backgroundColor: '#F8FAFC', padding: '12px 16px', borderRadius: 10, border: '1px solid #E2E8F0' }}>
-                        <div style={{ fontSize: '0.78rem', fontWeight: 800, color: '#64748B', textTransform: 'uppercase', marginBottom: 4 }}>Koper</div>
-                        <div style={{ fontWeight: 800, color: '#162544', fontSize: '0.95rem' }}>{ord.customer_name}</div>
-                        <div style={{ marginTop: 6 }}>
-                          <CopyButton text={ord.email} variant="inline">
-                            {ord.email}
-                          </CopyButton>
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* Ordered Items Table */}
-                    <div style={{ marginBottom: 14 }}>
-                      <div style={{ fontSize: '0.8rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 6 }}>Bestelde artikelen</div>
-                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.88rem' }}>
-                        <tbody>
-                          {Array.isArray(ord.items) && ord.items.map((item: OrderItem, idx: number) => (
-                            <tr key={idx} style={{ borderBottom: '1px solid #F1F5F9' }}>
-                              <td style={{ padding: '6px 0', color: '#162544', fontWeight: 700 }}>
-                                {item.quantity}× {item.name} <span style={{ color: '#64748B', fontWeight: 600 }}>(Maat: {item.size})</span>
-                              </td>
-                              <td style={{ padding: '6px 0', textAlign: 'right', fontWeight: 800, color: '#162544' }}>
-                                €{(item.price * item.quantity).toFixed(2).replace('.', ',')}
-                              </td>
-                            </tr>
-                          ))}
-                        </tbody>
-                      </table>
-                    </div>
-
-                    {/* Total & Delete Button */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: 10, borderTop: '1.5px solid #E2E8F0' }}>
-                      <div style={{ fontSize: '1rem', fontWeight: 900, color: '#162544' }}>
-                        Totaalbedrag: <span style={{ color: '#800020' }}>€{(ord.total || 0).toFixed(2).replace('.', ',')}</span>
-                      </div>
-
-                      <button
-                        type="button"
-                        onClick={() => handleOrderDelete(ord.id, ord.order_ref || `KM-${ord.id.slice(0, 6)}`)}
-                        disabled={updatingOrderId === ord.id}
-                        style={{ padding: '6px 12px', borderRadius: 8, backgroundColor: '#FDF0F2', color: '#B23A4D', border: '1.5px solid #E0C0C4', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
-                      >
-                        {updatingOrderId === ord.id ? 'Verwijderen…' : 'Bestelling Verwijderen'}
-                      </button>
-                    </div>
-
+                {activeOrders.length === 0 ? (
+                  <div style={{ backgroundColor: '#F8FAFC', border: '1px dashed #CBD5E1', borderRadius: 14, padding: '24px 28px', color: '#64748B', fontSize: '0.9rem', textAlign: 'center' }}>
+                    <i className="fa-solid fa-check" style={{ color: '#166534', marginRight: 8 }}></i>
+                    Geen actieve bestellingen op dit moment. Alles is netjes afgehandeld!
                   </div>
-                ))}
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 14 }}>
+                    {activeOrders.map((ord) => renderOrderCard(ord, false))}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-        )}
 
-        {/* TAB 2: ARTIKELEN & ASSORTIMENT */}
-        {activeTab === 'artikelen' && (
-          <div style={{ backgroundColor: '#fff', borderRadius: 16, border: '1px solid #CBD5E1', padding: 24, boxShadow: '0 2px 8px rgba(0,0,0,0.03)' }}>
-            
-            <div style={{ marginBottom: 24, padding: '16px 20px', borderRadius: 12, backgroundColor: '#F8FAFC', border: '1px solid #CBD5E1' }}>
-              <strong style={{ display: 'block', fontSize: '0.92rem', color: '#162544', marginBottom: 4 }}>
-                E-mailadres voor Bestellingsmeldingen
-              </strong>
-              <span style={{ display: 'block', fontSize: '0.82rem', color: '#64748B', marginBottom: 12 }}>
-                Ontvang automatisch een e-mailbevestiging wanneer een koper een bestelling plaatst.
+              {/* 2. RIJ: BEHANDELDE BESTELLINGEN */}
+              <div style={{ backgroundColor: '#ffffff', borderRadius: 24, border: '1px solid #CBD5E1', padding: '28px 32px', color: '#162544', boxShadow: '0 12px 32px rgba(0, 0, 0, 0.05)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 20, borderBottom: '1.5px solid #F1F5F9', paddingBottom: 14 }}>
+                  <div style={{ width: 34, height: 34, borderRadius: 10, backgroundColor: '#EEF5F1', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>
+                    <i className="fa-solid fa-circle-check"></i>
+                  </div>
+                  <h2 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 900, color: '#162544', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
+                    Behandelde Bestellingen
+                  </h2>
+                </div>
+
+                {completedOrders.length === 0 ? (
+                  <div style={{ backgroundColor: '#F8FAFC', border: '1px dashed #CBD5E1', borderRadius: 14, padding: '24px 28px', color: '#64748B', fontSize: '0.9rem', textAlign: 'center' }}>
+                    Nog geen afgehaalde bestellingen in het archief.
+                  </div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {completedOrders.map((ord) => renderOrderCard(ord, true))}
+                  </div>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+
+      {/* Main Card Container voor Artikelen & Instellingen */}
+      {activeTab !== 'bestellingen' && (
+        <div style={{ backgroundColor: '#ffffff', borderRadius: 24, border: '1px solid #CBD5E1', padding: '28px 32px', color: '#162544', boxShadow: '0 12px 32px rgba(0, 0, 0, 0.05)', width: '100%' }}>
+          
+          {/* Header Title Bar */}
+          <div style={{ borderBottom: '2px solid #E2E8F0', paddingBottom: 16, marginBottom: 24 }}>
+            <h1 style={{ margin: '0 0 4px', fontSize: '1.65rem', fontWeight: 900, color: '#162544', fontFamily: 'var(--font-heading, Nunito, sans-serif)', display: 'flex', alignItems: 'center', gap: 12 }}>
+              <i className={`fa-solid ${activeTab === 'artikelen' ? 'fa-shirt' : 'fa-gear'}`} style={{ color: '#243B6B' }}></i>
+              <span>
+                {activeTab === 'artikelen' ? 'Artikelen & Assortiment' : 'Webshop Instellingen'}
               </span>
-              <div className="portaal-email-notif-form">
-                <input
-                  type="email"
-                  value={webshopEmail}
-                  onChange={e => setWebshopEmail(e.target.value)}
-                  placeholder="bestellingen@kriko-m.be"
-                  style={{ flex: 1, padding: '9px 12px', border: '1px solid #CBD5E1', borderRadius: 8, fontSize: '0.9rem', fontWeight: 700, color: '#162544' }}
-                />
-                <button
-                  type="button"
-                  onClick={handleSaveSettings}
-                  disabled={saving}
-                  style={{ padding: '9px 18px', borderRadius: 8, backgroundColor: '#243B6B', color: '#fff', fontWeight: 800, fontSize: '0.86rem', border: 'none', cursor: 'pointer', whiteSpace: 'nowrap' }}
-                >
-                  {saving ? 'Opslaan…' : 'E-mail Opslaan'}
-                </button>
-              </div>
-            </div>
-
+            </h1>
+            <p style={{ margin: 0, fontSize: '0.9rem', color: '#64748B' }}>
+              {activeTab === 'artikelen'
+                ? 'Beheer artikelen, prijzen, maten en foto\'s van de webshop en uniformen.'
+                : 'Beheer de e-mailadressen voor bestellingsmeldingen en financiële opvolging.'}
+            </p>
+          </div>
+        {/* TAB 2: ARTIKELEN & ASSORTIMENT                           */}
+        {/* ======================================================== */}
+        {activeTab === 'artikelen' && (
+          <div>
             {loadingShopProducts ? (
-              <div style={{ padding: 40, textAlign: 'center', color: '#64748B', fontWeight: 600 }}>Producten laden…</div>
+              <div style={{ padding: 40, textAlign: 'center', color: '#64748B', fontWeight: 600 }}>
+                <i className="fa-solid fa-spinner fa-spin" style={{ marginRight: 8 }}></i> Producten laden…
+              </div>
             ) : (
               <div className="portaal-shop-beheer-grid">
                 
@@ -536,9 +931,14 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
                       cursor: 'pointer',
                       marginBottom: 8,
                       boxShadow: '0 2px 6px rgba(36,59,107,0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: 8,
                     }}
                   >
-                    + Nieuw Artikel Toevoegen
+                    <i className="fa-solid fa-plus"></i>
+                    <span>Nieuw Artikel Toevoegen</span>
                   </button>
 
                   <span style={{ fontSize: '0.75rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', padding: '4px 8px' }}>
@@ -593,7 +993,9 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
                 {/* Right side product editor */}
                 {(() => {
                   const product = shopProducts.find(p => p.id === selectedProductId)
-                  if (!product) return <div style={{ color: '#64748B' }}>Selecteer een artikel uit de lijst.</div>
+                  if (!product) return <div style={{ color: '#64748B', padding: 20 }}>Selecteer een artikel uit de lijst links.</div>
+
+                  const isKenteken = product.category === 'kentekens'
 
                   return (
                     <div style={{ backgroundColor: '#fff', borderRadius: 14, border: '1px solid #CBD5E1', padding: 20, display: 'flex', flexDirection: 'column', gap: 16 }}>
@@ -604,22 +1006,23 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
                         <button
                           type="button"
                           onClick={() => handleProductDelete(product.id)}
-                          style={{ padding: '6px 12px', borderRadius: 8, backgroundColor: '#FDF0F2', color: '#B91C1C', border: '1px solid #F8C8D4', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}
+                          style={{ padding: '6px 12px', borderRadius: 8, backgroundColor: '#FDF0F2', color: '#B91C1C', border: '1px solid #F8C8D4', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 6 }}
                         >
-                          Verwijderen
+                          <i className="fa-solid fa-trash"></i>
+                          <span>Verwijderen</span>
                         </button>
                       </div>
 
                       {/* Photo Preview & Upload */}
                       <div>
                         <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 8 }}>
-                          Artikel Foto
+                          Artikel Foto {isKenteken ? '(Vierkant 1:1)' : '(Rechthoekig 3:2)'}
                         </label>
                         <div style={{ display: 'flex', gap: 16, alignItems: 'center' }}>
                           <div style={{
-                            width: 90,
-                            height: 90,
-                            borderRadius: 12,
+                            width: isKenteken ? 96 : 144,
+                            height: 96,
+                            borderRadius: isKenteken ? 10 : 12,
                             backgroundColor: '#E2E8F0',
                             border: '1px solid #CBD5E1',
                             overflow: 'hidden',
@@ -627,14 +1030,17 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
                             alignItems: 'center',
                             justifyContent: 'center',
                             position: 'relative',
+                            flexShrink: 0,
+                            transition: 'width 0.2s ease, border-radius 0.2s ease',
                           }}>
                             {product.image ? (
                               /* eslint-disable-next-line @next/next/no-img-element */
                               <img src={product.image} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                             ) : (
-                              <span style={{ fontSize: '0.75rem', color: '#64748B', fontWeight: 700, textAlign: 'center', padding: 4 }}>
-                                Geen foto
-                              </span>
+                              <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 4, color: '#64748B' }}>
+                                <i className={`fa-solid ${isKenteken ? 'fa-certificate' : 'fa-shirt'}`} style={{ fontSize: isKenteken ? '1.5rem' : '1.8rem', opacity: 0.4 }} />
+                                <span style={{ fontSize: '0.72rem', fontWeight: 700 }}>Geen foto</span>
+                              </div>
                             )}
                           </div>
 
@@ -651,6 +1057,7 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
                               alignItems: 'center',
                               gap: 6,
                             }}>
+                              <i className="fa-solid fa-upload"></i>
                               <span>{uploadingProductPhoto ? 'Foto verwerken…' : 'Nieuwe foto uploaden'}</span>
                               <input
                                 type="file"
@@ -674,9 +1081,13 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
                                   fontWeight: 700,
                                   fontSize: '0.8rem',
                                   cursor: 'pointer',
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 6,
                                 }}
                               >
-                                Foto verwijderen
+                                <i className="fa-solid fa-trash-can"></i>
+                                <span>Foto verwijderen</span>
                               </button>
                             )}
                           </div>
@@ -758,9 +1169,10 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
                         type="button"
                         onClick={() => handleProductSave(product)}
                         disabled={savingProduct}
-                        style={{ padding: '12px 20px', borderRadius: 10, backgroundColor: '#243B6B', color: '#fff', fontWeight: 900, fontSize: '0.92rem', border: 'none', cursor: 'pointer', marginTop: 8 }}
+                        style={{ padding: '12px 20px', borderRadius: 10, backgroundColor: '#243B6B', color: '#fff', fontWeight: 900, fontSize: '0.92rem', border: 'none', cursor: 'pointer', marginTop: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}
                       >
-                        {savingProduct ? 'Opslaan…' : `Artikel "${product.name}" Opslaan`}
+                        <i className="fa-solid fa-floppy-disk"></i>
+                        <span>{savingProduct ? 'Opslaan…' : `Artikel "${product.name}" Opslaan`}</span>
                       </button>
                     </div>
                   )
@@ -770,7 +1182,99 @@ export default function WebshopPageClient({ initialSettings, role: _role, active
           </div>
         )}
 
+        {/* ======================================================== */}
+        {/* TAB 3: WEBSHOP INSTELLINGEN                              */}
+        {/* ======================================================== */}
+        {activeTab === 'instellingen' && (
+          <div style={{ maxWidth: 840, display: 'flex', flexDirection: 'column', gap: 24 }}>
+            
+            {/* 1. Bestellingsmeldingen e-mail */}
+            <div style={{ backgroundColor: '#F8FAFC', borderRadius: 14, border: '1.5px solid #E2E8F0', padding: '24px 28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#EBF0F9', color: '#243B6B', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
+                  <i className="fa-solid fa-envelope"></i>
+                </div>
+                <strong style={{ fontSize: '1.05rem', color: '#162544' }}>
+                  E-mailadres voor Bestellingsmeldingen
+                </strong>
+              </div>
+              <p style={{ margin: '0 0 16px', fontSize: '0.86rem', color: '#64748B', lineHeight: 1.5 }}>
+                Dit e-mailadres (webshop / uniformverantwoordelijke) ontvangt automatisch een bericht bij elke nieuwe geplaatste bestelling.
+              </p>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 6 }}>
+                  E-mailadres Webshopverantwoordelijke
+                </label>
+                <input
+                  type="email"
+                  value={webshopEmail}
+                  onChange={e => setWebshopEmail(e.target.value)}
+                  placeholder="bestellingen@kriko-m.be"
+                  style={{ width: '100%', maxWidth: 500, padding: '10px 14px', border: '1.5px solid #CBD5E1', borderRadius: 8, fontSize: '0.92rem', fontWeight: 700, color: '#162544' }}
+                />
+              </div>
+            </div>
+
+            {/* 2. Financieel e-mailadres */}
+            <div style={{ backgroundColor: '#F8FAFC', borderRadius: 14, border: '1.5px solid #E2E8F0', padding: '24px 28px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                <div style={{ width: 34, height: 34, borderRadius: 8, backgroundColor: '#EEF5F1', color: '#166534', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.95rem' }}>
+                  <i className="fa-solid fa-file-invoice-dollar"></i>
+                </div>
+                <strong style={{ fontSize: '1.05rem', color: '#162544' }}>
+                  E-mailadres Financieel Verantwoordelijke
+                </strong>
+              </div>
+              <p style={{ margin: '0 0 16px', fontSize: '0.86rem', color: '#64748B', lineHeight: 1.5 }}>
+                Ontvangt automatisch een e-mailbericht wanneer een bestelling via overschrijving geplaatst wordt, zodat de bankoverschrijving gecontroleerd en geverifieerd kan worden.
+              </p>
+              <div>
+                <label style={{ display: 'block', fontSize: '0.76rem', fontWeight: 800, color: '#162544', textTransform: 'uppercase', marginBottom: 6 }}>
+                  E-mailadres Financieel Verantwoordelijke
+                </label>
+                <input
+                  type="email"
+                  value={webshopFinancialEmail}
+                  onChange={e => setWebshopFinancialEmail(e.target.value)}
+                  placeholder="financieel@kriko-m.be"
+                  style={{ width: '100%', maxWidth: 500, padding: '10px 14px', border: '1.5px solid #CBD5E1', borderRadius: 8, fontSize: '0.92rem', fontWeight: 700, color: '#162544' }}
+                />
+              </div>
+            </div>
+
+            {/* Save Button */}
+            <div>
+              <button
+                type="button"
+                onClick={handleSaveSettings}
+                disabled={savingSettings}
+                style={{
+                  padding: '13px 26px',
+                  borderRadius: 10,
+                  backgroundColor: '#243B6B',
+                  color: '#FFFFFF',
+                  border: 'none',
+                  fontWeight: 900,
+                  fontSize: '0.94rem',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: 10,
+                  boxShadow: '0 4px 14px rgba(36, 59, 107, 0.25)',
+                  transition: 'all 0.2s ease',
+                }}
+                className="action-card-hover"
+              >
+                <i className="fa-solid fa-floppy-disk"></i>
+                <span>{savingSettings ? 'Opslaan…' : 'Instellingen Opslaan'}</span>
+              </button>
+            </div>
+
+          </div>
+        )}
+
       </div>
+      )}
 
       {confirmDialog && (
         <ConfirmDialog

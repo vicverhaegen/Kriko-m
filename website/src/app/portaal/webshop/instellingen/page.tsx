@@ -1,12 +1,12 @@
 import { redirect } from 'next/navigation'
 import { createServerSupabaseClient, createAdminClient } from '@/lib/supabase'
-import WebsiteBeheerClient from './WebsiteBeheerClient'
+import WebshopPageClient from '../WebshopPageClient'
 import { Settings } from '@/lib/types'
 import { normalizeSettings } from '@/lib/db'
 
-export const metadata = { title: 'Website Beheer — Portaal' }
+export const metadata = { title: 'Webshop Instellingen — Webshop & Uniformen | Kriko-M' }
 
-export default async function WebsiteBeheerPage() {
+export default async function WebshopInstellingenPage() {
   const supabase = await createServerSupabaseClient()
   const { data: { session } } = await supabase.auth.getSession()
   if (!session?.user) redirect('/portaal')
@@ -15,7 +15,7 @@ export default async function WebsiteBeheerPage() {
   if (error || !verified) redirect('/portaal')
 
   const role = verified.app_metadata?.role || ''
-  if (role === 'webshop') redirect('/portaal?error=unauthorized')
+  if (role === 'webshop') redirect('/portaal/webshop/bestellingen')
 
   const isAuthorized = role === 'admin' || role === 'groepsleiding'
   if (!isAuthorized) redirect('/portaal/home')
@@ -23,5 +23,11 @@ export default async function WebsiteBeheerPage() {
   const admin = createAdminClient()
   const { data: settingsData } = await admin.from('settings').select('*').single()
 
-  return <WebsiteBeheerClient initialSettings={normalizeSettings(settingsData) as Settings} role={role} />
+  return (
+    <WebshopPageClient
+      initialSettings={normalizeSettings(settingsData) as Settings}
+      role={role}
+      activeTab="instellingen"
+    />
+  )
 }

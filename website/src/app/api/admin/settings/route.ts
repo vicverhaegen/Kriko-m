@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createAdminClient } from '@/lib/supabase'
-import { requireGroepsleiding } from '@/lib/auth'
+import { requireGroepsleiding, requireWebshop } from '@/lib/auth'
 import { revalidateTag } from 'next/cache'
 import { PORTAAL_TAKKEN } from '@/lib/constants'
 import { normalizeSettings } from '@/lib/db'
@@ -9,8 +9,11 @@ import { normalizeSettings } from '@/lib/db'
 const TAK_EDITABLE_FIELDS = ['email', 'whatsapp_url', 'description', 'uniform', 'photo'] as const
 
 export async function PATCH(req: NextRequest) {
-  const user = await requireGroepsleiding()
-  if (!user) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
+  // Webshop role can edit webshop settings; Groepsleiding can edit all settings
+  const webshopUser = await requireWebshop()
+  if (!webshopUser) return NextResponse.json({ error: 'Geen toegang' }, { status: 403 })
+
+  const isGroepsleiding = webshopUser.app_metadata?.role === 'admin' || webshopUser.app_metadata?.role === 'groepsleiding'
 
   const body = await req.json()
   const admin = createAdminClient()
@@ -37,10 +40,12 @@ export async function PATCH(req: NextRequest) {
   ]
 
   let pbChanged = false
-  for (const field of PORTAL_FIELDS) {
-    if (field in body) {
-      pb[field] = String(body[field]).slice(0, 1000)
-      pbChanged = true
+  if (isGroepsleiding) {
+    for (const field of PORTAL_FIELDS) {
+      if (field in body) {
+        pb[field] = String(body[field]).slice(0, 1000)
+        pbChanged = true
+      }
     }
   }
 
@@ -56,6 +61,7 @@ export async function PATCH(req: NextRequest) {
     'bank_holder',
     'contact_email',
     'webshop_email',
+    'webshop_financial_email',
     'reg_fee_first',
     'reg_fee_extra',
     'home_leiding_foto',
@@ -65,6 +71,10 @@ export async function PATCH(req: NextRequest) {
 
   for (const key of STANDARD_SQL_FIELDS) {
     if (key in body) {
+      // If not groepsleiding, only allow webshop email fields
+      if (!isGroepsleiding && key !== 'webshop_email' && key !== 'webshop_financial_email') {
+        continue
+      }
       if (key === 'reg_fee_first' || key === 'reg_fee_extra') {
         update[key] = Number(body[key]) || 0
       } else {
@@ -133,4 +143,8 @@ export async function PATCH(req: NextRequest) {
 
   const normalized = normalizeSettings(data)
   return NextResponse.json(normalized)
+}
+
+export async function POST(req: NextRequest) {
+  return PATCH(req)
 }

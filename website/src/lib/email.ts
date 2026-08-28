@@ -1,4 +1,5 @@
 import { Resend } from 'resend'
+import jsPDF from 'jspdf'
 import { OrderItem } from '@/lib/types'
 
 // Resend-client. Wordt alleen server-side gebruikt (API routes).
@@ -26,83 +27,235 @@ interface OrderConfirmationParams {
   communication: string
   bankIban: string
   bankHolder: string
+  paymentMethod?: 'overschrijving' | 'cash'
+}
+
+export function createOrderPdfBuffer(params: OrderConfirmationParams): Buffer {
+  const { orderRef, items, total, communication, bankIban, bankHolder, paymentMethod = 'overschrijving' } = params
+  const isCash = paymentMethod === 'cash'
+
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' })
+  const pageWidth = doc.internal.pageSize.getWidth()
+
+  // Header bar
+  doc.setFillColor(22, 37, 68) // #162544
+  doc.rect(0, 0, pageWidth, 80, 'F')
+
+  doc.setTextColor(255, 255, 255)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(18)
+  doc.text('Scouts Kriko-M — Besteloverzicht', 40, 42)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(11)
+  doc.text(`Bestelnummer: ${orderRef}`, 40, 62)
+
+  let y = 110
+
+  // Box 1: Betalingsinformatie
+  doc.setFillColor(240, 236, 228) // #F0ECE4
+  doc.roundedRect(40, y, pageWidth - 80, isCash ? 85 : 120, 6, 6, 'F')
+
+  doc.setTextColor(22, 37, 68)
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.text('Betalingsinformatie', 56, y + 24)
+
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  doc.setTextColor(50, 50, 50)
+
+  if (isCash) {
+    doc.text('Betaalmethode: Contant / Cash bij afhaling', 56, y + 44)
+    doc.text(`Te betalen bedrag bij afhaling: ${euro(total)}`, 56, y + 62)
+    y += 105
+  } else {
+    doc.text('Betaalmethode: Handmatige bankoverschrijving', 56, y + 44)
+    doc.text(`Begunstigde: ${bankHolder || 'Scouts Kriko-M vzw'}`, 56, y + 60)
+    doc.text(`IBAN: ${bankIban || 'BE59 7360 6413 2626'}`, 56, y + 76)
+    doc.text(`Mededeling bij overschrijving: ${communication || orderRef}`, 56, y + 92)
+    doc.setFont('helvetica', 'bold')
+    doc.text(`Te overschrijven bedrag: ${euro(total)}`, 56, y + 108)
+    y += 140
+  }
+
+  // Box 2: Bestelde artikelen
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(13)
+  doc.setTextColor(22, 37, 68)
+  doc.text('Bestelde artikelen', 40, y + 10)
+  y += 24
+
+  // Table header
+  doc.setFillColor(235, 240, 249)
+  doc.rect(40, y, pageWidth - 80, 22, 'F')
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(10)
+  doc.setTextColor(22, 37, 68)
+  doc.text('Aantal & Artikel', 50, y + 15)
+  doc.text('Maat', pageWidth - 200, y + 15)
+  doc.text('Totaal', pageWidth - 50, y + 15, { align: 'right' })
+  y += 22
+
+  // Table rows
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(10)
+  doc.setTextColor(40, 40, 40)
+
+  items.forEach((item) => {
+    const itemPrice = typeof item.price === 'number' && !isNaN(item.price) ? item.price : (Number(item.price) || 0)
+    const itemQty = typeof item.quantity === 'number' && !isNaN(item.quantity) ? item.quantity : (Number(item.quantity) || 1)
+
+    doc.text(`${itemQty}x ${item.name}`, 50, y + 16)
+    doc.text(`${item.size || 'Standaard'}`, pageWidth - 200, y + 16)
+    doc.text(euro(itemPrice * itemQty), pageWidth - 50, y + 16, { align: 'right' })
+
+    doc.setDrawColor(230, 230, 230)
+    doc.line(40, y + 22, pageWidth - 40, y + 22)
+    y += 22
+  })
+
+  // Total row
+  y += 10
+  doc.setFont('helvetica', 'bold')
+  doc.setFontSize(12)
+  doc.setTextColor(101, 11, 25) // #650B19
+  doc.text('Totaalbedrag:', 50, y + 12)
+  doc.text(euro(total), pageWidth - 50, y + 12, { align: 'right' })
+
+  // Footer notes
+  y += 45
+  doc.setFont('helvetica', 'normal')
+  doc.setFontSize(9)
+  doc.setTextColor(100, 100, 100)
+  doc.text('De webshopverantwoordelijke neemt per e-mail contact op voor een afhaalmoment.', 40, y)
+  doc.text('Scouts Kriko-M vzw | Industriepark-Noord 33, 9100 Sint-Niklaas | groepsleiding@kriko-m.be', 40, y + 16)
+
+  const arrayBuffer = doc.output('arraybuffer')
+  return Buffer.from(arrayBuffer)
 }
 
 export async function sendOrderConfirmation(params: OrderConfirmationParams) {
   const resend = getClient()
   if (!resend) {
-    console.warn('⚠️ RESEND_API_KEY ontbreekt in environment variables; bevestigingsmail niet verstuurd.')
+    console.warn('RESEND_API_KEY ontbreekt in environment variables; bevestigingsmail niet verstuurd.')
     return
   }
 
-  const { to, orderRef, customerName, items, total, communication, bankIban, bankHolder } = params
+  const { to, orderRef, customerName, items, total, communication, bankIban, bankHolder, paymentMethod = 'overschrijving' } = params
+
+  const isCash = paymentMethod === 'cash'
 
   const itemRows = items
     .map(
       (i) => `<tr>
-        <td style="padding:6px 0;border-bottom:1px solid #eee;">${i.quantity}× ${esc(i.name)} <span style="color:#888;">(${esc(i.size)})</span></td>
-        <td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;">${euro(i.price * i.quantity)}</td>
+        <td style="padding:8px 0;border-bottom:1px solid #E5DFD5;"><strong>${i.quantity}×</strong> ${esc(i.name)} <span style="color:#666;">(Maat: ${esc(i.size)})</span></td>
+        <td style="padding:8px 0;border-bottom:1px solid #E5DFD5;text-align:right;white-space:nowrap;font-weight:600;">${euro(i.price * i.quantity)}</td>
       </tr>`
     )
     .join('')
 
-  const html = `<!doctype html><html><body style="margin:0;background:#F0ECE4;font-family:Arial,Helvetica,sans-serif;color:#2b2b2b;">
-    <div style="max-width:560px;margin:0 auto;padding:24px;">
-      <div style="background:#650B19;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0;">
-        <h1 style="margin:0;font-size:20px;">Bedankt voor je bestelling</h1>
-        <p style="margin:6px 0 0;opacity:.9;font-size:14px;">Bestelnummer: ${esc(orderRef)}</p>
-      </div>
-      <div style="background:#fff;padding:24px;border-radius:0 0 12px 12px;">
-        <p style="margin:0 0 16px;">Beste ${esc(customerName)},</p>
-        <p style="margin:0 0 20px;line-height:1.5;">We hebben je bestelling goed ontvangen. Je kan betalen via <strong>handmatige overschrijving</strong> met onderstaande gegevens, of <strong>contant/cash bij afhaling</strong>.</p>
+  const paymentBlockHtml = isCash
+    ? `<div style="background:#EEF5F1;border:1.5px solid #C2D9C9;border-radius:10px;padding:16px 20px;margin-top:18px;">
+        <h3 style="margin:0 0 6px;font-size:15px;color:#1A3D2A;font-weight:bold;">Betaling: Contant / Cash bij Afhaling</h3>
+        <p style="margin:0 0 10px;font-size:13px;color:#1A3D2A;line-height:1.5;">
+          Je hebt gekozen om contant te betalen bij het ophalen van je bestelling bij de leiding.
+        </p>
+        <div style="background:#FFFFFF;border:1px solid #C2D9C9;border-radius:8px;padding:10px 14px;display:flex;justify-content:space-between;align-items:center;">
+          <span style="font-size:13px;color:#1A3D2A;font-weight:600;">Te betalen bedrag bij afhaling:</span>
+          <strong style="font-size:16px;color:#1A3D2A;">${euro(total)}</strong>
+        </div>
+      </div>`
+    : `<div style="background:#F0ECE4;border:1.5px solid #E2E8F0;border-radius:10px;padding:16px 20px;margin-top:18px;">
+        <h3 style="margin:0 0 10px;font-size:15px;color:#162544;font-weight:bold;">Betalingsinstructies Bankoverschrijving</h3>
+        <table style="width:100%;border-collapse:collapse;font-size:13px;">
+          <tr><td style="padding:4px 0;color:#666;width:120px;">Begunstigde:</td><td style="padding:4px 0;font-weight:bold;color:#162544;">${esc(bankHolder)}</td></tr>
+          <tr><td style="padding:4px 0;color:#666;">IBAN:</td><td style="padding:4px 0;font-family:monospace;font-weight:bold;color:#162544;letter-spacing:0.05em;">${esc(bankIban)}</td></tr>
+          <tr><td style="padding:4px 0;color:#666;">Bedrag:</td><td style="padding:4px 0;font-weight:bold;font-size:15px;color:#162544;">${euro(total)}</td></tr>
+          <tr><td style="padding:4px 0;color:#666;">Mededeling:</td><td style="padding:4px 0;font-family:monospace;font-weight:bold;font-size:15px;color:#162544;letter-spacing:0.05em;">${esc(communication)}</td></tr>
+        </table>
+      </div>`
 
-        <table style="width:100%;border-collapse:collapse;margin-bottom:20px;">${itemRows}
-          <tr><td style="padding:10px 0 0;font-weight:bold;">Totaal</td><td style="padding:10px 0 0;text-align:right;font-weight:bold;">${euro(total)}</td></tr>
+  const html = `<!doctype html><html><body style="margin:0;background:#F0ECE4;font-family:Arial,Helvetica,sans-serif;color:#2b2b2b;">
+    <div style="max-width:580px;margin:0 auto;padding:24px;">
+      <div style="background:#162544;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0;">
+        <h1 style="margin:0;font-size:20px;">Bedankt voor je bestelling</h1>
+        <p style="margin:6px 0 0;opacity:.9;font-size:14px;">Bestelnummer: <strong>${esc(orderRef)}</strong></p>
+      </div>
+      <div style="background:#fff;padding:24px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+        <p style="margin:0 0 14px;font-size:15px;">Beste ${esc(customerName)},</p>
+        <p style="margin:0 0 18px;line-height:1.5;font-size:14px;color:#444;">
+          We hebben je bestelling goed ontvangen. ${isCash ? 'Je betaalt contant bij het ophalen van je bestelling.' : 'Gelieve het totaalbedrag over te schrijven met onderstaande gegevens.'}
+        </p>
+
+        <h3 style="margin:0 0 8px;font-size:14px;color:#162544;text-transform:uppercase;letter-spacing:0.04em;">Bestelde Artikelen</h3>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:16px;font-size:14px;">
+          ${itemRows}
+          <tr>
+            <td style="padding:12px 0 0;font-weight:bold;font-size:15px;color:#162544;">Totaalbedrag:</td>
+            <td style="padding:12px 0 0;text-align:right;font-weight:bold;font-size:16px;color:#650B19;">${euro(total)}</td>
+          </tr>
         </table>
 
-        <div style="background:#F0ECE4;border-radius:10px;padding:16px 18px;">
-          <h2 style="margin:0 0 12px;font-size:15px;color:#650B19;">Betaling via Overschrijving (Optie 1)</h2>
-          <table style="width:100%;border-collapse:collapse;font-size:14px;">
-            <tr><td style="padding:3px 0;color:#666;">Begunstigde</td><td style="padding:3px 0;text-align:right;">${esc(bankHolder)}</td></tr>
-            <tr><td style="padding:3px 0;color:#666;">IBAN</td><td style="padding:3px 0;text-align:right;font-family:monospace;">${esc(bankIban)}</td></tr>
-            <tr><td style="padding:3px 0;color:#666;">Bedrag</td><td style="padding:3px 0;text-align:right;font-weight:bold;">${euro(total)}</td></tr>
-            <tr><td style="padding:3px 0;color:#666;">Mededeling</td><td style="padding:3px 0;text-align:right;font-weight:bold;font-family:monospace;">${esc(communication)}</td></tr>
-          </table>
-        </div>
+        ${paymentBlockHtml}
 
-        <div style="background:#EEF5F1;border:1px solid #C2D9C9;border-radius:10px;padding:16px 18px;margin-top:16px;">
-          <h2 style="margin:0 0 8px;font-size:15px;color:#1A3D2A;">Betaling Cash bij Afhaling (Optie 2)</h2>
-          <p style="margin:0;font-size:13px;color:#2b2b2b;line-height:1.4;">
-            Je kan ook contant/cash betalen zodra je je bestelling komt ophalen bij de webshopverantwoordelijke.
-          </p>
+        <p style="margin:22px 0 0;font-size:13px;color:#666;line-height:1.5;">
+          De webshopverantwoordelijke neemt per e-mail contact met je op om een geschikt afhaalmoment af te spreken.
+        </p>
+        
+        <div style="margin:20px 0 0;padding-top:16px;border-top:1px solid #eee;font-size:13px;color:#888;line-height:1.4;">
+          Stevige linkerhand,<br/>
+          <strong>Scouts Kriko-M vzw</strong><br/>
+          Industriepark-Noord 33, 9100 Sint-Niklaas
         </div>
-
-        <p style="margin:20px 0 0;font-size:13px;color:#888;line-height:1.5;">De webshopverantwoordelijke neemt zelf contact met je op om een afhaalmoment af te spreken.</p>
-        <p style="margin:16px 0 0;font-size:13px;color:#888;">Stevige linkerhand,<br/>Scouts Kriko-M</p>
       </div>
     </div>
   </body></html>`
 
+  const paymentTextLines = isCash
+    ? [
+        `Betalingsmethode: Contant / Cash bij afhaling`,
+        `Gelieve het gepaste bedrag (${euro(total)}) mee te brengen bij het afhalen.`,
+      ]
+    : [
+        `Betalingsmethode: Handmatige bankoverschrijving`,
+        `Begunstigde: ${bankHolder}`,
+        `IBAN: ${bankIban}`,
+        `Bedrag: ${euro(total)}`,
+        `Mededeling bij overschrijving: ${communication}`,
+      ]
+
   const text = [
-    `Bedankt voor je bestelling! (${orderRef})`,
+    `Bedankt voor je bestelling (${orderRef})!`,
     ``,
     `Beste ${customerName},`,
-    `We hebben je bestelling goed ontvangen.`,
+    `We hebben je bestelling succesvol ontvangen.`,
     ``,
-    ...items.map((i) => `- ${i.quantity}x ${i.name} (${i.size}): ${euro(i.price * i.quantity)}`),
-    `Totaal: ${euro(total)}`,
+    `Bestelde artikelen:`,
+    ...items.map((i) => `- ${i.quantity}x ${i.name} (Maat: ${i.size}): ${euro(i.price * i.quantity)}`),
     ``,
-    `Betalingsmogelijkheden:`,
-    `1. Handmatige overschrijving:`,
-    `   Begunstigde: ${bankHolder}`,
-    `   IBAN: ${bankIban}`,
-    `   Bedrag: ${euro(total)}`,
-    `   Mededeling: ${communication}`,
-    `2. Cash bij afhaling.`,
+    `Totaalbedrag: ${euro(total)}`,
     ``,
-    `De webshopverantwoordelijke neemt zelf contact op voor het afhaalmoment.`,
-    `Stevige linkerhand, Scouts Kriko-M`,
+    ...paymentTextLines,
+    ``,
+    `De webshopverantwoordelijke neemt per e-mail contact met je op om een geschikt afhaalmoment af te spreken.`,
+    ``,
+    `Stevige linkerhand,`,
+    `Scouts Kriko-M vzw`,
   ].join('\n')
+
+  let pdfAttachment = undefined
+  try {
+    const pdfBuffer = createOrderPdfBuffer(params)
+    pdfAttachment = [
+      {
+        filename: `Bestelling_${orderRef}.pdf`,
+        content: pdfBuffer,
+      },
+    ]
+  } catch (pdfErr) {
+    console.warn('Kon PDF-bijlage niet genereren voor e-mail:', pdfErr)
+  }
 
   const res = await resend.emails.send({
     from: FROM_WEBSHOP,
@@ -111,10 +264,11 @@ export async function sendOrderConfirmation(params: OrderConfirmationParams) {
     subject: `Bevestiging bestelling ${orderRef} — Scouts Kriko-M`,
     html,
     text,
+    ...(pdfAttachment ? { attachments: pdfAttachment } : {}),
   })
 
   if (res.error) {
-    console.error('⚠️ Resend fout bij verzenden bestelbevestiging:', res.error)
+    console.error('Resend fout bij verzenden bestelbevestiging:', res.error)
   }
 }
 
@@ -128,6 +282,7 @@ interface WebshopOrderNotificationParams {
   communication: string
   bankIban: string
   bankHolder: string
+  paymentMethod?: 'overschrijving' | 'cash'
 }
 
 export async function sendWebshopOrderNotification(params: WebshopOrderNotificationParams) {
@@ -137,7 +292,8 @@ export async function sendWebshopOrderNotification(params: WebshopOrderNotificat
     return
   }
 
-  const { to, orderRef, customerName, email, items, total } = params
+  const { to, orderRef, customerName, email, items, total, paymentMethod = 'overschrijving' } = params
+  const isCash = paymentMethod === 'cash'
 
   const itemRows = items
     .map(
@@ -152,26 +308,27 @@ export async function sendWebshopOrderNotification(params: WebshopOrderNotificat
 
   const html = `<!doctype html><html><body style="margin:0;background:#F0ECE4;font-family:Arial,Helvetica,sans-serif;color:#2b2b2b;">
     <div style="max-width:600px;margin:0 auto;padding:24px;">
-      <div style="background:#650B19;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0;">
+      <div style="background:#162544;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0;">
         <h1 style="margin:0;font-size:20px;">Nieuwe Webshop Bestelling</h1>
         <p style="margin:6px 0 0;opacity:.9;font-size:14px;">Bestelnummer: <strong>${esc(orderRef)}</strong></p>
       </div>
       <div style="background:#fff;padding:24px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
         <p style="margin:0 0 16px;font-size:15px;line-height:1.5;">
           Beste webshopverantwoordelijke,<br/><br/>
-          Er is zojuist een nieuwe bestelling geplaatst via de webshop van Scouts Kriko-M.
+          Er is een nieuwe bestelling geplaatst via de webshop van Scouts Kriko-M.
         </p>
 
         <div style="background:#F0ECE4;border-radius:10px;padding:16px 18px;margin-bottom:20px;">
-          <h3 style="margin:0 0 10px;font-size:15px;color:#650B19;">Gegevens Koper</h3>
+          <h3 style="margin:0 0 10px;font-size:15px;color:#162544;">Gegevens Koper</h3>
           <table style="width:100%;border-collapse:collapse;font-size:14px;">
-            <tr><td style="padding:4px 0;color:#666;width:140px;">Naam koper:</td><td style="padding:4px 0;font-weight:bold;">${esc(customerName)}</td></tr>
-            <tr><td style="padding:4px 0;color:#666;">E-mailadres:</td><td style="padding:4px 0;"><a href="mailto:${esc(email)}" style="color:#650B19;font-weight:bold;">${esc(email)}</a></td></tr>
-            <tr><td style="padding:4px 0;color:#666;">Totaalbedrag:</td><td style="padding:4px 0;font-weight:bold;font-size:16px;color:#1A3D2A;">${euro(total)}</td></tr>
+            <tr><td style="padding:4px 0;color:#666;width:140px;">Naam koper:</td><td style="padding:4px 0;font-weight:bold;color:#162544;">${esc(customerName)}</td></tr>
+            <tr><td style="padding:4px 0;color:#666;">E-mailadres:</td><td style="padding:4px 0;"><a href="mailto:${esc(email)}" style="color:#162544;font-weight:bold;">${esc(email)}</a></td></tr>
+            <tr><td style="padding:4px 0;color:#666;">Betaalmethode:</td><td style="padding:4px 0;font-weight:bold;color:${isCash ? '#166534' : '#1E3A8A'};">${isCash ? 'Contant / Cash bij afhaling' : 'Overschrijving'}</td></tr>
+            <tr><td style="padding:4px 0;color:#666;">Totaalbedrag:</td><td style="padding:4px 0;font-weight:bold;font-size:16px;color:#650B19;">${euro(total)}</td></tr>
           </table>
         </div>
 
-        <h3 style="margin:0 0 12px;font-size:15px;color:#650B19;">Bestelde Artikelen</h3>
+        <h3 style="margin:0 0 12px;font-size:15px;color:#162544;">Bestelde Artikelen</h3>
         <table style="width:100%;border-collapse:collapse;font-size:14px;margin-bottom:20px;">
           <thead>
             <tr style="background:#f8f9fa;text-align:left;">
@@ -191,7 +348,7 @@ export async function sendWebshopOrderNotification(params: WebshopOrderNotificat
         </table>
 
         <p style="margin:20px 0 0;font-size:13px;color:#666;line-height:1.5;">
-          Je kan rechtstreeks met de koper communiceren via <a href="mailto:${esc(email)}" style="color:#650B19;">${esc(email)}</a> om een afhaalmoment af te spreken.
+          Je kan rechtstreeks met de koper communiceren via <a href="mailto:${esc(email)}" style="color:#162544;font-weight:bold;">${esc(email)}</a> om een afhaalmoment af te spreken.
         </p>
       </div>
     </div>
@@ -202,6 +359,7 @@ export async function sendWebshopOrderNotification(params: WebshopOrderNotificat
     ``,
     `Naam koper: ${customerName}`,
     `E-mailadres: ${email}`,
+    `Betaalmethode: ${isCash ? 'Cash bij afhaling' : 'Overschrijving'}`,
     `Totaalbedrag: ${euro(total)}`,
     ``,
     `Bestelde artikelen:`,
@@ -213,13 +371,103 @@ export async function sendWebshopOrderNotification(params: WebshopOrderNotificat
   const res = await resend.emails.send({
     from: FROM_WEBSHOP,
     to,
-    subject: `Nieuwe Webshop Bestelling ${orderRef} — ${customerName}`,
+    subject: `Nieuwe Webshop Bestelling ${orderRef} — ${customerName} (${isCash ? 'Cash' : 'Overschrijving'})`,
     html,
     text,
   })
 
   if (res.error) {
-    console.error('⚠️ Resend fout bij verzenden bestelnotificatie naar webshop:', res.error)
+    console.error('Resend fout bij verzenden bestelnotificatie naar webshop:', res.error)
+  }
+}
+
+interface FinancialOrderNotificationParams {
+  to: string
+  orderRef: string
+  customerName: string
+  email: string
+  items: OrderItem[]
+  total: number
+  communication: string
+  bankIban: string
+  bankHolder: string
+}
+
+export async function sendFinancialOrderNotification(params: FinancialOrderNotificationParams) {
+  const resend = getClient()
+  if (!resend) {
+    console.warn('RESEND_API_KEY ontbreekt; financiële notificatiemail niet verstuurd.')
+    return
+  }
+
+  const { to, orderRef, customerName, email, items, total, communication } = params
+
+  const itemRows = items
+    .map(
+      (i) => `<tr>
+        <td style="padding:6px 0;border-bottom:1px solid #eee;">${i.quantity}× ${esc(i.name)} <span style="color:#888;">(${esc(i.size)})</span></td>
+        <td style="padding:6px 0;border-bottom:1px solid #eee;text-align:right;white-space:nowrap;">${euro(i.price * i.quantity)}</td>
+      </tr>`
+    )
+    .join('')
+
+  const html = `<!doctype html><html><body style="margin:0;background:#F0ECE4;font-family:Arial,Helvetica,sans-serif;color:#2b2b2b;">
+    <div style="max-width:580px;margin:0 auto;padding:24px;">
+      <div style="background:#162544;color:#fff;padding:20px 24px;border-radius:12px 12px 0 0;">
+        <h1 style="margin:0;font-size:20px;">Webshop Bestelling via Overschrijving</h1>
+        <p style="margin:6px 0 0;opacity:.9;font-size:14px;">Bestelnummer: <strong>${esc(orderRef)}</strong></p>
+      </div>
+      <div style="background:#fff;padding:24px;border-radius:0 0 12px 12px;box-shadow:0 2px 8px rgba(0,0,0,0.05);">
+        <p style="margin:0 0 16px;font-size:15px;line-height:1.5;">
+          Beste financieel verantwoordelijke,<br/><br/>
+          Er is een nieuwe bestelling geplaatst via overschrijving in de webshop van Scouts Kriko-M.
+        </p>
+
+        <div style="background:#F0ECE4;border-radius:10px;padding:16px 18px;margin-bottom:20px;">
+          <h3 style="margin:0 0 10px;font-size:15px;color:#162544;">Overschrijvingsgegevens</h3>
+          <table style="width:100%;border-collapse:collapse;font-size:14px;">
+            <tr><td style="padding:4px 0;color:#666;width:140px;">Koper:</td><td style="padding:4px 0;font-weight:bold;color:#162544;">${esc(customerName)} (${esc(email)})</td></tr>
+            <tr><td style="padding:4px 0;color:#666;">Te ontvangen bedrag:</td><td style="padding:4px 0;font-weight:bold;font-size:16px;color:#650B19;">${euro(total)}</td></tr>
+            <tr><td style="padding:4px 0;color:#666;">Mededeling:</td><td style="padding:4px 0;font-weight:bold;font-family:monospace;font-size:15px;color:#162544;letter-spacing:0.05em;">${esc(communication)}</td></tr>
+          </table>
+        </div>
+
+        <h3 style="margin:0 0 10px;font-size:14px;color:#162544;">Bestelde Artikelen</h3>
+        <table style="width:100%;border-collapse:collapse;margin-bottom:20px;font-size:14px;">${itemRows}</table>
+
+        <div style="background:#EBF0F9;border:1px solid #CBD5E1;border-radius:8px;padding:12px 16px;font-size:13px;color:#162544;line-height:1.4;">
+          Controleer de bankrekening op ontvangst van de betaling. Zodra het bedrag ontvangen is, kan de status in het leidingsportaal worden aangepast naar <strong>Betaald</strong>.
+        </div>
+      </div>
+    </div>
+  </body></html>`
+
+  const text = [
+    `Webshop Bestelling via Overschrijving (${orderRef})`,
+    ``,
+    `Beste financieel verantwoordelijke,`,
+    `Er is een nieuwe bestelling geplaatst via overschrijving:`,
+    ``,
+    `Koper: ${customerName} (${email})`,
+    `Te ontvangen bedrag: ${euro(total)}`,
+    `Mededeling: ${communication}`,
+    ``,
+    `Bestelde artikelen:`,
+    ...items.map((i) => `- ${i.quantity}x ${i.name} (${i.size}): ${euro(i.price * i.quantity)}`),
+    ``,
+    `Gelieve de bankrekening te controleren en de status in het portaal aan te passen naar Betaald zodra ontvangen.`,
+  ].join('\n')
+
+  const res = await resend.emails.send({
+    from: FROM_WEBSHOP,
+    to,
+    subject: `Nieuwe bestelling overschrijving: ${orderRef} (${euro(total)}) — ${customerName}`,
+    html,
+    text,
+  })
+
+  if (res.error) {
+    console.error('Resend fout bij verzenden financiële notificatie:', res.error)
   }
 }
 

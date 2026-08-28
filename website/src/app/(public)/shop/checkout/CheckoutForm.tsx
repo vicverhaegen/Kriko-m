@@ -18,6 +18,8 @@ export default function CheckoutForm() {
     if (hydrated && items.length === 0 && status === 'idle') router.push('/shop')
   }, [hydrated, items.length, status, router])
 
+  const [paymentMethod, setPaymentMethod] = useState<'overschrijving' | 'cash'>('overschrijving')
+
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setStatus('sending')
@@ -29,15 +31,26 @@ export default function CheckoutForm() {
       body: JSON.stringify({
         customer_name: fd.get('customer_name'),
         email: fd.get('email'),
-        website: fd.get('website'), // honeypot
-        _t: loadedAt,
+        kriko_hp_verify: fd.get('kriko_hp_verify'),
+        _sec_token: loadedAt,
         cart: items,
+        payment_method: paymentMethod,
       }),
     })
     if (res.ok) {
       const data = await res.json()
+      const orderToStore = {
+        order_ref: data.order_ref || data.communication || 'KM-0001',
+        communication: data.communication || data.order_ref || 'KM-0001',
+        total: typeof data.total === 'number' ? data.total : totalPrice,
+        items: Array.isArray(data.items) && data.items.length > 0 ? data.items : items,
+        bank_iban: data.bank_iban || 'BE59 7360 6413 2626',
+        bank_holder: data.bank_holder || 'Scouts Kriko-M vzw',
+        webshop_email: data.webshop_email || 'bestellingen@kriko-m.be',
+        payment_method: data.payment_method || paymentMethod,
+      }
       clearCart()
-      sessionStorage.setItem('kriko_last_order', JSON.stringify(data))
+      sessionStorage.setItem('kriko_last_order', JSON.stringify(orderToStore))
       router.push('/shop/bevestiging')
     } else {
       const data = await res.json().catch(() => ({}))
@@ -68,10 +81,18 @@ export default function CheckoutForm() {
           )}
 
           <form onSubmit={handleSubmit}>
-            {/* Honeypot — verborgen voor mensen */}
-            <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden' }}>
-              <label htmlFor="website">Laat dit veld leeg</label>
-              <input type="text" id="website" name="website" tabIndex={-1} autoComplete="off" />
+            {/* Slimme honeypot tegen crawlers — onzichtbaar voor mensen en genegeerd door autofill */}
+            <div aria-hidden="true" style={{ position: 'absolute', left: '-9999px', width: 1, height: 1, overflow: 'hidden', opacity: 0, pointerEvents: 'none' }}>
+              <label htmlFor="kriko_hp_verify">Niet invullen</label>
+              <input
+                type="text"
+                id="kriko_hp_verify"
+                name="kriko_hp_verify"
+                tabIndex={-1}
+                autoComplete="off"
+                data-lpignore="true"
+                data-1p-ignore="true"
+              />
             </div>
 
             <div className="form-group" style={{ marginBottom: 20 }}>
@@ -100,22 +121,93 @@ export default function CheckoutForm() {
               />
             </div>
 
-            {/* Betalings- en afhaalinfo */}
-            <div style={{ background: 'var(--color-bg-linen)', borderRadius: 'var(--border-radius-md)', padding: '20px', border: '1px solid var(--color-border)', margin: '24px 0 28px' }}>
-              <strong style={{ display: 'block', color: 'var(--color-primary-dark)', fontSize: '1rem', marginBottom: 8 }}>
-                Betaling &amp; Ophalen
-              </strong>
-              <ul style={{ margin: 0, paddingLeft: 20, fontSize: '0.88rem', color: 'var(--color-text-dark)', lineHeight: 1.6 }}>
-                <li>
-                  <strong>Optie 1: Handmatige overschrijving</strong> — Je ontvangt een IBAN en duidelijke mededeling.
-                </li>
-                <li>
-                  <strong>Optie 2: Cash / contant</strong> — Je kan contant betalen bij het ophalen.
-                </li>
-                <li style={{ marginTop: 4 }}>
-                  De uniformverantwoordelijke ontvangt direct een mail van jouw bestelling en neemt zelf contact op om de afhaling af te spreken!
-                </li>
-              </ul>
+            {/* Betalingskeuze */}
+            <div style={{ marginBottom: 28 }}>
+              <label className="form-label" style={{ display: 'block', marginBottom: 10, fontWeight: 800, color: 'var(--color-primary-dark)' }}>
+                Betaalmethode:
+              </label>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 12 }}>
+                
+                {/* Optie 1: Overschrijving */}
+                <div
+                  onClick={() => setPaymentMethod('overschrijving')}
+                  style={{
+                    border: paymentMethod === 'overschrijving' ? '2px solid var(--color-primary, #650B19)' : '2px solid #E2E8F0',
+                    backgroundColor: paymentMethod === 'overschrijving' ? '#FAF4F5' : '#FFFFFF',
+                    borderRadius: 'var(--border-radius-md, 12px)',
+                    padding: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: paymentMethod === 'overschrijving' ? '0 2px 8px rgba(101, 11, 25, 0.12)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, color: 'var(--color-primary-dark, #162544)', fontSize: '0.96rem' }}>
+                      <i className="fa-solid fa-building-columns" style={{ color: 'var(--color-primary, #650B19)' }}></i>
+                      <span>Overschrijving</span>
+                    </div>
+                    <input
+                      type="radio"
+                      name="payment_method_radio"
+                      checked={paymentMethod === 'overschrijving'}
+                      onChange={() => setPaymentMethod('overschrijving')}
+                      style={{ accentColor: '#650B19', cursor: 'pointer' }}
+                    />
+                  </div>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted, #64748B)', lineHeight: 1.4 }}>
+                    Je ontvangt een overschrijvingsmededeling en ons IBAN-rekeningnummer.
+                  </span>
+                </div>
+
+                {/* Optie 2: Cash */}
+                <div
+                  onClick={() => setPaymentMethod('cash')}
+                  style={{
+                    border: paymentMethod === 'cash' ? '2px solid var(--color-primary, #650B19)' : '2px solid #E2E8F0',
+                    backgroundColor: paymentMethod === 'cash' ? '#FAF4F5' : '#FFFFFF',
+                    borderRadius: 'var(--border-radius-md, 12px)',
+                    padding: '16px',
+                    cursor: 'pointer',
+                    transition: 'all 0.15s ease',
+                    boxShadow: paymentMethod === 'cash' ? '0 2px 8px rgba(101, 11, 25, 0.12)' : 'none',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 6,
+                  }}
+                >
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, fontWeight: 800, color: 'var(--color-primary-dark, #162544)', fontSize: '0.96rem' }}>
+                      <i className="fa-solid fa-money-bill-wave" style={{ color: '#166534' }}></i>
+                      <span>Cash bij afhaling</span>
+                    </div>
+                    <input
+                      type="radio"
+                      name="payment_method_radio"
+                      checked={paymentMethod === 'cash'}
+                      onChange={() => setPaymentMethod('cash')}
+                      style={{ accentColor: '#650B19', cursor: 'pointer' }}
+                    />
+                  </div>
+                  <span style={{ fontSize: '0.82rem', color: 'var(--color-text-muted, #64748B)', lineHeight: 1.4 }}>
+                    Je betaalt het gepaste bedrag contant wanneer je je bestelling afhaalt.
+                  </span>
+                </div>
+
+              </div>
+            </div>
+
+            {/* Afhaalinfo */}
+            <div style={{ background: 'var(--color-bg-linen)', borderRadius: 'var(--border-radius-md)', padding: '16px 20px', border: '1px solid var(--color-border)', marginBottom: 24 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, color: 'var(--color-primary-dark)', fontWeight: 800, fontSize: '0.92rem', marginBottom: 6 }}>
+                <i className="fa-solid fa-circle-info"></i>
+                <span>Afhaling van je bestelling</span>
+              </div>
+              <p style={{ margin: 0, fontSize: '0.86rem', color: 'var(--color-text-dark)', lineHeight: 1.5 }}>
+                De webshopverantwoordelijke ontvangt jouw bestelling en neemt per e-mail contact op om een afhaalmoment af te spreken.
+              </p>
             </div>
 
             <button
