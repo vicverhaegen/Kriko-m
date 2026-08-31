@@ -5,7 +5,7 @@ import { createPortal } from 'react-dom'
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { Leader, Settings, TakConfig } from '@/lib/types'
-import { LeidingbeheerKolom, LeidingbeheerTak, TAK_NAMEN, TAK_KLEUREN } from '@/lib/constants'
+import { LeidingbeheerKolom, LeidingbeheerTak, TAK_NAMEN } from '@/lib/constants'
 import PortaalToast from '../_components/PortaalToast'
 
 interface Props {
@@ -81,8 +81,9 @@ export default function LeidingbeheerClient({ initialSettings }: Props) {
       const branchLeaders = takken[col]?.leaders ?? []
       cols[col] = branchLeaders.map((l: Leader, idx: number) => {
         const isGrl = isNameGroepsleiding(l.name, l.role, l.is_groepsleiding)
+        const cleanKey = (l.name || '').toLowerCase().replace(/[^a-z0-9]/g, '') || String(idx)
         return {
-          id: l.id || `${col}-${idx}-${Math.random().toString(36).substring(2, 7)}`,
+          id: l.id || `${col}-${idx}-${cleanKey}`,
           name: l.name || '',
           totem: l.totem || '',
           phone: l.phone || '',
@@ -94,13 +95,15 @@ export default function LeidingbeheerClient({ initialSettings }: Props) {
 
     // 2. Laad leiding die eventueel enkel in 'groepsleiding' staat
     const directGrlLeaders = takken.groepsleiding?.leaders ?? []
-    for (const dgl of directGrlLeaders) {
+    for (let i = 0; i < directGrlLeaders.length; i++) {
+      const dgl = directGrlLeaders[i]
       const isAlreadyInAny = allTakKeys.some(tk =>
         cols[tk].some(l => l.name.trim().toLowerCase() === dgl.name.trim().toLowerCase())
       )
       if (!isAlreadyInAny && dgl.name?.trim()) {
+        const cleanKey = dgl.name.toLowerCase().replace(/[^a-z0-9]/g, '') || String(i)
         cols.groepsleiding.push({
-          id: dgl.id || `grl-only-${Math.random().toString(36).substring(2, 7)}`,
+          id: dgl.id || `grl-only-${cleanKey}`,
           name: dgl.name,
           totem: dgl.totem || '',
           phone: dgl.phone || '',
@@ -123,8 +126,9 @@ export default function LeidingbeheerClient({ initialSettings }: Props) {
         list.some(l => l.name.toLowerCase().includes(defGrl.name.split(' ')[0].toLowerCase()))
       )
       if (!alreadyInAny) {
+        const cleanKey = defGrl.name.toLowerCase().replace(/[^a-z0-9]/g, '')
         cols[defGrl.col].push({
-          id: `grl-${Math.random().toString(36).substring(2, 7)}`,
+          id: `grl-def-${cleanKey}`,
           name: defGrl.name,
           totem: defGrl.totem,
           phone: defGrl.phone,

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Settings } from '@/lib/types'
 import CopyButton from '@/components/CopyButton'
 import ConfirmDialog from '../_components/ConfirmDialog'
-import PortaalToast, { ToastState } from '../_components/PortaalToast'
+import PortaalToast from '../_components/PortaalToast'
 
 interface OrderItem {
   name: string

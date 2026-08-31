@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Settings } from '@/lib/types'
-import PortaalToast, { ToastState } from '../_components/PortaalToast'
+import PortaalToast from '../_components/PortaalToast'
 
 interface AccountInfo {
   id: string | null
