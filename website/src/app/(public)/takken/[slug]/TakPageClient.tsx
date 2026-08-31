@@ -9,7 +9,6 @@ import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
 import WhatsAppJoinButton from '@/components/WhatsAppJoinButton'
 import EditableText from '@/components/editing/EditableText'
 import EditableImage from '@/components/editing/EditableImage'
-import EditLeidingModal from '@/components/editing/EditLeidingModal'
 import EditTakContactModal from '@/components/editing/EditTakContactModal'
 import { useEditMode } from '@/components/editing/EditContext'
 import { Echo, Leader } from '@/lib/types'
@@ -133,7 +132,6 @@ export default function TakPageClient({
   const [takEmail, setTakEmail] = useState<string>(initialTakEmail)
   const [takWhatsapp, setTakWhatsapp] = useState<string>(initialTakWhatsapp)
 
-  const [isLeidingModalOpen, setIsLeidingModalOpen] = useState(false)
   const [isContactModalOpen, setIsContactModalOpen] = useState(false)
 
   useEffect(() => {
@@ -271,36 +269,6 @@ export default function TakPageClient({
             {/* 3. Leiding Section & Foto */}
             <div className="leaders-section" style={{ position: 'relative', overflow: 'visible' }}>
               
-              {/* Dedicated blue portal button for groepsleiding */}
-              {isEditMode && (
-                <button
-                  onClick={() => setIsLeidingModalOpen(true)}
-                  type="button"
-                  style={{
-                    position: 'absolute',
-                    top: 10,
-                    right: takPhotoSrc ? 290 : 10,
-                    zIndex: 999,
-                    backgroundColor: '#162544',
-                    color: '#ffffff',
-                    border: '1.5px solid #243B6B',
-                    borderRadius: 20,
-                    padding: '8px 16px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    fontSize: '0.86rem',
-                    fontWeight: 800,
-                    cursor: 'pointer',
-                    boxShadow: '0 4px 14px rgba(22, 37, 68, 0.35)',
-                    fontFamily: 'var(--font-heading, Nunito, sans-serif)',
-                  }}
-                >
-                  <i className="fa-solid fa-pen-to-square" style={{ color: '#E2C58D' }}></i>
-                  Leidingsploeg &amp; Foto Bewerken
-                </button>
-              )}
-
               {/* Schuine Foto aan de RECHTER BOVENHOEK */}
               {takPhotoSrc && (
                 <div className="tak-leader-photo-wrap">
@@ -353,7 +321,7 @@ export default function TakPageClient({
               <div style={{ display: 'flex', flexDirection: 'column', gap: 14, marginTop: 24 }}>
                 {leadersToDisplay.length === 0 ? (
                   <p style={{ color: 'var(--color-text-muted)', fontStyle: 'italic', margin: 0, padding: '12px 0' }}>
-                    Er is momenteel geen leiding ingesteld voor deze tak.
+                    Benieuwd naar je leiding? Kom zeker langs op onze overgang.
                   </p>
                 ) : (
                   leadersToDisplay.map((leader: Leader, idx: number) => (
@@ -562,22 +530,6 @@ export default function TakPageClient({
 
         </div>
       </section>
-
-      {/* Leiding Edit Modal in portal blue */}
-      {isLeidingModalOpen && (
-        <EditLeidingModal
-          slug={slug}
-          takName={takName}
-          initialPhoto={takPhotoSrc}
-          initialLeaders={leadersToDisplay}
-          onClose={() => setIsLeidingModalOpen(false)}
-          onSaved={(savedLeaders, savedPhoto) => {
-            setLeadersToDisplay(savedLeaders)
-            setTakPhotoSrc(savedPhoto)
-            router.refresh()
-          }}
-        />
-      )}
 
       {/* Contact & WhatsApp Edit Modal */}
       {isContactModalOpen && (

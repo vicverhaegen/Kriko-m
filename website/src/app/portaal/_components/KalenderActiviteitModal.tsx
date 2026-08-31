@@ -163,7 +163,7 @@ export default function KalenderActiviteitModal({
   }
   const labelStyle = { display: 'block', fontSize: '.82rem', fontWeight: 800, color: '#162544', marginBottom: 6 }
   const errorOutline = (f: string): React.CSSProperties => validationErrors.has(f)
-    ? { boxShadow: '0 0 0 2px #e74c3c, 0 0 10px rgba(231,76,60,.35)', borderRadius: 10 }
+    ? { border: '1.5px solid #FCA5A5', backgroundColor: '#FEF2F2', borderRadius: 10, padding: '4px 8px', transition: 'all 0.2s ease' }
     : {}
 
   if (!mounted || typeof document === 'undefined') return null
@@ -236,6 +236,24 @@ export default function KalenderActiviteitModal({
           {flash && (
             <div style={{ background: '#EBF0F9', border: '1.5px solid #243B6B', color: '#162544', padding: '10px 14px', borderRadius: 10, fontWeight: 600, fontSize: '.9rem' }}>
               {flash}
+            </div>
+          )}
+
+          {validationErrors.size > 0 && (
+            <div style={{
+              backgroundColor: '#FEF2F2',
+              border: '1px solid #FECACA',
+              color: '#991B1B',
+              padding: '10px 16px',
+              borderRadius: 10,
+              fontSize: '0.86rem',
+              fontWeight: 700,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 10,
+            }}>
+              <i className="fa-solid fa-circle-exclamation" style={{ color: '#EF4444', fontSize: '1rem' }} />
+              <span>Vul a.u.b. alle verplichte velden met een * in (titel, datum, tijd en doelgroep).</span>
             </div>
           )}
 

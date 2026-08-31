@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { Settings } from '@/lib/types'
 import CopyButton from '@/components/CopyButton'
 import ConfirmDialog from '../_components/ConfirmDialog'
+import PortaalToast, { ToastState } from '../_components/PortaalToast'
 
 interface OrderItem {
   name: string
@@ -805,26 +806,8 @@ export default function WebshopPageClient({
   return (
     <div style={{ maxWidth: 1240, margin: '0 auto', width: '100%', padding: '24px 20px 48px' }} className="portaal-page-container">
       
-      {/* Toast Flash Message */}
-      {flashMessage && (
-        <div style={{
-          padding: '14px 22px',
-          borderRadius: 14,
-          marginBottom: 24,
-          fontSize: '0.92rem',
-          fontWeight: 800,
-          display: 'flex',
-          alignItems: 'center',
-          gap: 12,
-          backgroundColor: flashMessage.type === 'success' ? '#EBF0F9' : '#FDF0F2',
-          color: flashMessage.type === 'success' ? '#162544' : '#B23A4D',
-          border: `1.5px solid ${flashMessage.type === 'success' ? '#CBD5E1' : '#E0C0C4'}`,
-          boxShadow: '0 4px 16px rgba(0,0,0,0.06)',
-        }}>
-          <i className={`fa-solid ${flashMessage.type === 'success' ? 'fa-circle-check' : 'fa-triangle-exclamation'}`}></i>
-          <span>{flashMessage.text}</span>
-        </div>
-      )}
+      {/* Toast Notificatie (Portaalblauw) */}
+      <PortaalToast toast={flashMessage} onClose={() => setFlashMessage(null)} />
 
       {/* ======================================================== */}
       {/* TAB 1: BESTELLINGEN                                     */}

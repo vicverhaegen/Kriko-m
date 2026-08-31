@@ -10,9 +10,28 @@ export const metadata: Metadata = { title: 'Contact' }
 
 export default async function ContactPage() {
   const settings = await getSettings()
+  const takken = settings?.takken ?? {}
 
-  const groepsleidingLeaders: Leader[] = settings?.takken?.groepsleiding?.leaders ?? []
-  const groepsleidingPhoto = settings?.takken?.groepsleiding?.photo ?? null
+  // Verzamel alle leiding die als groepsleiding is aangeduid in eender welke tak of opslag
+  const groepsleidingMap = new Map<string, Leader>()
+
+  // 1. Check alle takken en opslag
+  const takKeys = ['kapoenen', 'welpen', 'jonggivers', 'givers', 'opslag', 'groepsleiding']
+  for (const key of takKeys) {
+    const list = takken[key]?.leaders ?? []
+    for (const leader of list) {
+      const isGrl = leader.is_groepsleiding || (leader.role && leader.role.toLowerCase().includes('groepsleiding')) || key === 'groepsleiding'
+      if (isGrl && leader.name && leader.name.trim()) {
+        const cleanName = leader.name.trim().toLowerCase()
+        if (!groepsleidingMap.has(cleanName)) {
+          groepsleidingMap.set(cleanName, leader)
+        }
+      }
+    }
+  }
+
+  const groepsleidingLeaders: Leader[] = Array.from(groepsleidingMap.values())
+  const groepsleidingPhoto = takken.groepsleiding?.photo ?? null
 
   return (
     <>

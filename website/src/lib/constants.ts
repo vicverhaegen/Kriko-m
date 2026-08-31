@@ -10,13 +10,20 @@ export const TAKKEN_MET_ALLE = [...TAKKEN, 'alle'] as const
 // De 4 leeftijdstakken + 'groepsleiding' (beheerstak, enkel zichtbaar voor rol
 // groepsleiding). "Evenementen" is GEEN tak — het is een kalender-tag (zie
 // AUDIENCE_TAGS, label "Groep").
-export const PORTAAL_TAKKEN = ['kapoenen', 'welpen', 'jonggivers', 'givers', 'groepsleiding'] as const
+export const PORTAAL_TAKKEN = ['kapoenen', 'welpen', 'jonggivers', 'givers', 'groepsleiding', 'opslag'] as const
 export type PortaalTak = (typeof PORTAAL_TAKKEN)[number]
 
 // Tabs die enkel zichtbaar zijn voor rol groepsleiding.
 export const GROEPSLEIDING_ONLY_TAKKEN = ['groepsleiding'] as const
 
+export const LEIDINGBEHEER_KOLOMMEN = ['kapoenen', 'welpen', 'jonggivers', 'givers'] as const
+export type LeidingbeheerKolom = (typeof LEIDINGBEHEER_KOLOMMEN)[number]
+
+export const LEIDINGBEHEER_ALLE_TAKKEN = ['kapoenen', 'welpen', 'jonggivers', 'givers', 'groepsleiding', 'opslag'] as const
+export type LeidingbeheerTak = (typeof LEIDINGBEHEER_ALLE_TAKKEN)[number]
+
 export const TAK_NAMEN: Record<string, string> = {
+  opslag: 'Opslag (inactief)',
   kapoenen: 'Kapoenen',
   welpen: 'Welpen',
   jonggivers: 'Jonggivers',
@@ -27,6 +34,7 @@ export const TAK_NAMEN: Record<string, string> = {
 
 // Leeftijdslabels voor dropdowns.
 export const TAK_LABELS: Record<string, string> = {
+  opslag: 'Opslag (inactief)',
   kapoenen: 'Kapoenen (6–8j)',
   welpen: 'Welpen (8–11j)',
   jonggivers: 'Jonggivers (11–14j)',
@@ -34,6 +42,7 @@ export const TAK_LABELS: Record<string, string> = {
 }
 
 export const TAK_KLEUREN: Record<string, string> = {
+  opslag: '#64748B',
   kapoenen: '#F4C842',
   welpen: '#5D9E6C',
   jonggivers: '#E07B1A',

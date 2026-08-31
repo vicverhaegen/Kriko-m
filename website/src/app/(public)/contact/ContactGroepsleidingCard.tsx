@@ -1,11 +1,8 @@
 'use client'
 
-import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import Image from 'next/image'
 import { Leader } from '@/lib/types'
-import EditLeidingModal from '@/components/editing/EditLeidingModal'
 import EditableText from '@/components/editing/EditableText'
-import { useEditMode } from '@/components/editing/EditContext'
 import ProtectedPhone from '@/components/anti-scraping/ProtectedPhone'
 
 interface Props {
@@ -15,22 +12,10 @@ interface Props {
 
 export default function ContactGroepsleidingCard({
   initialLeaders,
-  initialPhoto = null,
+  initialPhoto,
 }: Props) {
-  const router = useRouter()
-  const { isEditMode } = useEditMode()
-
-  const [leaders, setLeaders] = useState<Leader[]>(initialLeaders)
-  const [photo, setPhoto] = useState<string | null>(initialPhoto)
-  const [isModalOpen, setIsModalOpen] = useState(false)
-
-  useEffect(() => {
-    setLeaders(initialLeaders)
-  }, [initialLeaders])
-
-  useEffect(() => {
-    setPhoto(initialPhoto)
-  }, [initialPhoto])
+  const leaders = initialLeaders
+  const hasPhoto = Boolean(initialPhoto && initialPhoto.trim() !== '')
 
   return (
     <div className="side-card" style={{ position: 'relative' }}>
@@ -45,31 +30,6 @@ export default function ContactGroepsleidingCard({
             as="span"
           />
         </h3>
-
-        {isEditMode && (
-          <button
-            onClick={() => setIsModalOpen(true)}
-            type="button"
-            style={{
-              backgroundColor: '#162544',
-              color: '#FFFFFF',
-              border: '1.5px solid #243B6B',
-              borderRadius: 20,
-              padding: '6px 14px',
-              display: 'flex',
-              alignItems: 'center',
-              gap: 6,
-              fontSize: '0.82rem',
-              fontWeight: 800,
-              cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.15)',
-              fontFamily: 'var(--font-heading, Nunito, sans-serif)',
-            }}
-          >
-            <i className="fa-solid fa-pen-to-square" style={{ color: '#E2C58D' }}></i>
-            Bewerken
-          </button>
-        )}
       </div>
 
       <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
@@ -116,19 +76,16 @@ export default function ContactGroepsleidingCard({
         )}
       </div>
 
-      {isModalOpen && (
-        <EditLeidingModal
-          slug="groepsleiding"
-          takName="Groepsleiding"
-          initialPhoto={photo}
-          initialLeaders={leaders}
-          onClose={() => setIsModalOpen(false)}
-          onSaved={(savedLeaders, savedPhoto) => {
-            setLeaders(savedLeaders)
-            setPhoto(savedPhoto)
-            router.refresh()
-          }}
-        />
+      {hasPhoto && (
+        <div style={{ position: 'relative', width: '100%', aspectRatio: '4 / 3', borderRadius: 'var(--border-radius-md)', overflow: 'hidden', marginTop: 16, border: '1px solid var(--color-border)', boxShadow: '0 2px 6px rgba(0,0,0,0.06)' }}>
+          <Image
+            src={initialPhoto!}
+            alt="Groepsleiding Scouts Kriko-M"
+            fill
+            sizes="360px"
+            style={{ objectFit: 'cover' }}
+          />
+        </div>
       )}
     </div>
   )

@@ -151,6 +151,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
     if (pathname === '/portaal/echos') return 'Kriko Echo Beheer'
     if (pathname === '/portaal/algemene-info') return 'Documenten & Links'
     if (pathname === '/portaal/leiding/agenda') return 'Agenda'
+    if (pathname.startsWith('/portaal/leidingbeheer')) return 'Leidingsbeheer'
     if (pathname.startsWith('/portaal/instellingen')) return 'Portaalinstellingen'
     if (pathname === '/portaal/webshop/artikelen') return 'Webshop Artikelen'
     if (pathname === '/portaal/webshop/instellingen') return 'Webshop Instellingen'
@@ -217,8 +218,10 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
           </div>
         </div>
 
-        {/* Right Side: Quick User Icon / Profile Dropdown */}
+        {/* Right Side: Quick User Icon / Profile Dropdown & Action Portal */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+          <div id="portaal-topbar-actions" style={{ display: 'flex', alignItems: 'center', gap: 10 }} />
+
           <div className="portaal-profile-container" style={{ position: 'relative' }}>
             <button
               onClick={() => setDropdownOpen(prev => !prev)}

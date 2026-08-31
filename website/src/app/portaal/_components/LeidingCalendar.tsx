@@ -8,6 +8,7 @@ import SubscribeCalendarButton from '@/components/SubscribeCalendarButton'
 import ConfirmDialog from './ConfirmDialog'
 import KalenderActiviteitModal from './KalenderActiviteitModal'
 import { EventDetailDialog } from '@/components/EventDetailModal'
+import PortaalToast, { ToastState } from './PortaalToast'
 
 const MAANDEN = ['', 'Januari', 'Februari', 'Maart', 'April', 'Mei', 'Juni', 'Juli', 'Augustus', 'September', 'Oktober', 'November', 'December']
 const MAANDEN_KORT = ['Jan', 'Feb', 'Mrt', 'Apr', 'Mei', 'Jun', 'Jul', 'Aug', 'Sep', 'Okt', 'Nov', 'Dec']
@@ -44,7 +45,7 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
   const [showForm, setShowForm] = useState(false)
   const [editId, setEditId] = useState<string | null>(null)
   const [activeViewEvent, setActiveViewEvent] = useState<CalendarEvent | null>(null)
-  const [flash, setFlash] = useState('')
+  const [toast, setToast] = useState<ToastState | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   // Calendar grid state
@@ -144,7 +145,9 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
 
 
 
-  function showFlash(msg: string) { setFlash(msg); setTimeout(() => setFlash(''), 3000) }
+  function showFlash(msg: string, type: 'success' | 'error' = 'success') {
+    setToast({ text: msg, type })
+  }
 
   const entries: CalendarEvent[] = useMemo(() => {
     if (filter.size === 0) return events
@@ -726,12 +729,6 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
   // ─── Render ───────────────────────────────────────────────────────────────
   return (
     <div className="portal-agenda-container-root">
-      {flash && !showForm && (
-        <div style={{ background: '#FFFFFF', border: '1px solid #243B6B', color: '#243B6B', padding: '12px 18px', borderRadius: 12, marginBottom: 14, fontWeight: 700, boxShadow: '0 2px 8px rgba(107,23,36,0.1)', flexShrink: 0 }}>
-          {flash}
-        </div>
-      )}
-
       {twoColumn ? (
         // Two-column: filter bar + calendar grid left (sticky), activity list right
         <div className="portal-agenda-layout" ref={layoutRef}>
@@ -829,6 +826,9 @@ export default function LeidingCalendar({ initialCalendar, highlightTak, canPubl
           onCancel={() => setConfirmDialog(null)}
         />
       )}
+
+      {/* Toast Notificatie (Portaalblauw) */}
+      <PortaalToast toast={toast} onClose={() => setToast(null)} />
     </div>
   )
 }

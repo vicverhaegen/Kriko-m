@@ -583,12 +583,51 @@ export default function DocumentenClient({ initialResources, isGroepsleiding }: 
   return (
     <div style={{ maxWidth: 1240, margin: '0 auto', width: '100%', padding: '32px 24px 60px' }}>
       
+      <style>{`
+        @media (max-width: 640px) {
+          .documenten-topbar-edit-btn {
+            padding: 0 !important;
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            justify-content: center !important;
+            border-radius: 10px !important;
+          }
+          .documenten-topbar-edit-text {
+            display: none !important;
+          }
+          .documenten-topbar-edit-btn i {
+            font-size: 0.95rem !important;
+            margin: 0 !important;
+          }
+        }
+        @media (max-width: 480px) {
+          .documenten-topbar-subbtn-text {
+            display: none !important;
+          }
+          .documenten-topbar-subbtn {
+            padding: 0 !important;
+            width: 38px !important;
+            height: 38px !important;
+            min-width: 38px !important;
+            justify-content: center !important;
+            border-radius: 10px !important;
+          }
+          .documenten-topbar-subbtn i {
+            font-size: 0.95rem !important;
+            margin: 0 !important;
+          }
+        }
+      `}</style>
+
       {/* Topbar Controls via React Portal into header right side slot */}
       {mounted && isGroepsleiding && typeof document !== 'undefined' && document.getElementById('portaal-topbar-actions') &&
         createPortal(
           <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button
               onClick={() => setEditMode(!editMode)}
+              className="documenten-topbar-edit-btn"
+              title={editMode ? 'Bewerken voltooien' : 'Documenten bewerken'}
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -604,13 +643,15 @@ export default function DocumentenClient({ initialResources, isGroepsleiding }: 
               }}
             >
               <i className={editMode ? 'fa-solid fa-check' : 'fa-solid fa-pen-to-square'}></i>
-              <span>{editMode ? 'Klaar' : 'Bewerken'}</span>
+              <span className="documenten-topbar-edit-text">{editMode ? 'Klaar' : 'Bewerken'}</span>
             </button>
 
             {editMode && (
               <>
                 <button
                   onClick={openCategoryModal}
+                  className="documenten-topbar-subbtn"
+                  title="Nieuwe categorie toevoegen"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -626,11 +667,13 @@ export default function DocumentenClient({ initialResources, isGroepsleiding }: 
                   }}
                 >
                   <i className="fa-solid fa-folder-plus"></i>
-                  <span>Categorie</span>
+                  <span className="documenten-topbar-subbtn-text">Categorie</span>
                 </button>
 
                 <button
                   onClick={() => openNewItemModal()}
+                  className="documenten-topbar-subbtn"
+                  title="Nieuw item toevoegen"
                   style={{
                     display: 'inline-flex',
                     alignItems: 'center',
@@ -646,7 +689,7 @@ export default function DocumentenClient({ initialResources, isGroepsleiding }: 
                   }}
                 >
                   <i className="fa-solid fa-plus"></i>
-                  <span>Item</span>
+                  <span className="documenten-topbar-subbtn-text">Item</span>
                 </button>
               </>
             )}

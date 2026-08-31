@@ -336,9 +336,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ url: pub.publicUrl })
     }
 
-    if (uploadType === 'tak-leiding-foto') {
-      if (!IMAGE_MIME.has(file.type)) {
-        return NextResponse.json({ error: 'Leidingsfoto moet een afbeelding zijn (JPG, PNG of WebP).' }, { status: 400 })
+    if (uploadType === 'tak-leiding-foto' || uploadType.startsWith('tak-foto-') || uploadType.startsWith('tak-')) {
+      if (!IMAGE_MIME.has(effectiveMime)) {
+        return NextResponse.json({ error: 'Leidingsfoto moet een afbeelding zijn (JPG, PNG, WebP of HEIC).' }, { status: 400 })
       }
 
       await cleanupOldFile('kamp-fotos', oldUrl)
@@ -354,13 +354,13 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ url: pub.publicUrl, filename })
     }
 
-    if (uploadType === 'home-leiding-foto') {
-      if (!IMAGE_MIME.has(file.type)) {
-        return NextResponse.json({ error: 'Startpaginafoto moet een afbeelding zijn (JPG, PNG of WebP).' }, { status: 400 })
+    if (uploadType === 'home-leiding-foto' || uploadType === 'portal-login-foto') {
+      if (!IMAGE_MIME.has(effectiveMime)) {
+        return NextResponse.json({ error: 'Foto moet een afbeelding zijn (JPG, PNG, WebP of HEIC).' }, { status: 400 })
       }
 
       await cleanupOldFile('kamp-fotos', oldUrl)
-      const filename = `home-leiding-${Date.now()}.${ext}`
+      const filename = `${uploadType}-${Date.now()}.${ext}`
 
       const { error: storageError } = await admin.storage
         .from('kamp-fotos')
@@ -373,8 +373,8 @@ export async function POST(req: NextRequest) {
     }
 
     if (uploadType === 'shop-product-foto') {
-      if (!IMAGE_MIME.has(file.type)) {
-        return NextResponse.json({ error: 'Productfoto moet een afbeelding zijn (JPG, PNG of WebP).' }, { status: 400 })
+      if (!IMAGE_MIME.has(effectiveMime)) {
+        return NextResponse.json({ error: 'Productfoto moet een afbeelding zijn (JPG, PNG, WebP of HEIC).' }, { status: 400 })
       }
 
       await cleanupOldFile('kamp-fotos', oldUrl)
@@ -398,8 +398,8 @@ export async function POST(req: NextRequest) {
       uploadType === 'tak-banner' ||
       uploadType === 'general-photo'
     ) {
-      if (!IMAGE_MIME.has(file.type)) {
-        return NextResponse.json({ error: 'Foto moet een geldig afbeeldingsformaat zijn (JPG, PNG of WebP).' }, { status: 400 })
+      if (!IMAGE_MIME.has(effectiveMime)) {
+        return NextResponse.json({ error: 'Foto moet een geldig afbeeldingsformaat zijn (JPG, PNG, WebP of HEIC).' }, { status: 400 })
       }
 
       await cleanupOldFile('kamp-fotos', oldUrl)

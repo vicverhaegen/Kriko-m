@@ -74,7 +74,7 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
   }
 
   // Collapsible menu state
-  const isWebsiteRoute = pathname.startsWith('/portaal/instellingen')
+  const isWebsiteRoute = pathname.startsWith('/portaal/instellingen') || pathname.startsWith('/portaal/leidingbeheer')
   const isWebshopRoute = pathname.startsWith('/portaal/webshop')
 
   const [websiteBeheerOpen, setWebsiteBeheerOpen] = useState(isWebsiteRoute)
@@ -381,6 +381,28 @@ export default function PortaalSidebar({ naam, role, mobileOpen = false, onClose
                     >
                       <i className="fa-solid fa-pen-to-square" style={{ fontSize: '0.82rem', width: 18, textAlign: 'center', color: 'rgba(255, 255, 255, 0.7)' }}></i>
                       <span>Live Bewerken</span>
+                    </Link>
+
+                    <Link
+                      href="/portaal/leidingbeheer"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 10,
+                        padding: '9px 12px',
+                        borderRadius: 8,
+                        textDecoration: 'none',
+                        fontSize: '0.86rem',
+                        fontWeight: pathname === '/portaal/leidingbeheer' ? 800 : 600,
+                        color: '#FFFFFF',
+                        background: pathname === '/portaal/leidingbeheer' ? '#243B6B' : 'transparent',
+                        boxShadow: pathname === '/portaal/leidingbeheer' ? '0 2px 8px rgba(0, 0, 0, 0.25)' : 'none',
+                        transition: 'all 0.15s ease',
+                      }}
+                      className={`portaal-sidebar-item ${pathname === '/portaal/leidingbeheer' ? 'active' : ''}`}
+                    >
+                      <i className="fa-solid fa-users-line" style={{ fontSize: '0.82rem', width: 18, textAlign: 'center', color: pathname === '/portaal/leidingbeheer' ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)' }}></i>
+                      <span>Leidingsbeheer</span>
                     </Link>
 
                     <Link

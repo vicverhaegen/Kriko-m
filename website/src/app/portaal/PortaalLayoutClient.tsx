@@ -93,6 +93,7 @@ export default function PortaalLayoutClient({ children, naam, role, settings }: 
     if (path === '/portaal/echos') return 'Kriko Echo'
     if (path === '/portaal/algemene-info') return 'Documenten & Links'
     if (path === '/portaal/leiding/agenda') return 'Kalender & Activiteiten'
+    if (path.startsWith('/portaal/leidingbeheer')) return 'Leidingsbeheer'
     if (path.startsWith('/portaal/instellingen')) return 'Portaalinstellingen'
     if (path === '/portaal/webshop/artikelen') return 'Webshop Artikelen'
     if (path === '/portaal/webshop/instellingen') return 'Webshop Instellingen'

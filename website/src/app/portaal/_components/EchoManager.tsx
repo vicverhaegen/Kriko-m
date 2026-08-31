@@ -4,6 +4,7 @@ import { useState, useRef } from 'react'
 import { Echo } from '@/lib/types'
 import { TAK_NAMEN, TAK_KLEUREN, MAANDEN } from '@/lib/constants'
 import ConfirmDialog from './ConfirmDialog'
+import PortaalToast, { ToastState } from './PortaalToast'
 
 const WERKJAAR_MAANDEN = [
   { monthNum: 9, label: 'September' },
@@ -32,7 +33,7 @@ export default function EchoManager({ initialEchos, isGroepsleiding = false }: P
   const [activeTak, setActiveTak] = useState('kapoenen')
   const [echos, setEchos] = useState<Echo[]>(initialEchos)
   const [loading, setLoading] = useState(false)
-  const [flash, setFlash] = useState('')
+  const [toast, setToast] = useState<ToastState | null>(null)
   const [confirmDialog, setConfirmDialog] = useState<{ message: string; onConfirm: () => void } | null>(null)
 
   // Upload Form State (Left Column)
@@ -46,9 +47,8 @@ export default function EchoManager({ initialEchos, isGroepsleiding = false }: P
 
   const [uploadFlash, setUploadFlash] = useState<{ message: string; type: 'success' | 'error' | 'info' } | null>(null)
 
-  function showFlash(msg: string) {
-    setFlash(msg)
-    setTimeout(() => setFlash(''), 4000)
+  function showFlash(msg: string, type: 'success' | 'error' = 'success') {
+    setToast({ text: msg, type })
   }
 
   function showUploadFlash(msg: string, type: 'success' | 'error' | 'info' = 'success') {
@@ -152,7 +152,7 @@ export default function EchoManager({ initialEchos, isGroepsleiding = false }: P
         gap: 14,
         width: '100%',
         maxWidth: 780,
-        margin: `0 auto ${flash ? 20 : 28}px auto`,
+        margin: '0 auto 28px auto',
       }}>
         {FOUR_TAKKEN.map(tak => {
           const isActive = activeTak === tak
@@ -221,23 +221,6 @@ export default function EchoManager({ initialEchos, isGroepsleiding = false }: P
           )
         })}
       </div>
-
-      {/* General Flash Message (Goedgekeurd, Verwijderd, etc.) - Placement UNDER Takkenknoppen */}
-      {flash && (
-        <div style={{
-          background: '#FFFFFF',
-          borderLeft: '5px solid #162544',
-          color: '#162544',
-          padding: '14px 20px',
-          borderRadius: 12,
-          marginBottom: 28,
-          fontWeight: 800,
-          boxShadow: '0 2px 8px rgba(0,0,0,0.06)',
-          textAlign: 'center',
-        }}>
-          {flash}
-        </div>
-      )}
 
       {/* 2-Column Layout: Balanced Uploadzone Left (1.5fr), Compact List Right (0.85fr) */}
       <div className="portaal-echo-grid">
@@ -765,6 +748,9 @@ export default function EchoManager({ initialEchos, isGroepsleiding = false }: P
           onCancel={() => setConfirmDialog(null)}
         />
       )}
+
+      {/* Toast Notificatie (Portaalblauw) */}
+      <PortaalToast toast={toast} onClose={() => setToast(null)} />
     </div>
   )
 }

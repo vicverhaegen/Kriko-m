@@ -7459,6 +7459,7 @@ body.portal-theme .portaal-nav {
 .contact-page-grid {
     display: grid;
     grid-template-columns: minmax(0, 1.15fr) minmax(0, 1fr);
+    align-items: start;
     gap: 36px;
 }
 
@@ -8561,5 +8562,50 @@ body.portal-theme .portaal-nav {
     font-size: 16px !important;
   }
 }
+
+/* Portaal Toast Notifications */
+.portaal-toast-notification {
+  position: fixed;
+  bottom: 32px;
+  right: 32px;
+  z-index: 99999;
+  padding: 16px 26px;
+  border-radius: 16px;
+  box-shadow: 0 14px 36px rgba(0,0,0,0.35);
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-weight: 800;
+  font-size: 1.02rem;
+  animation: toastSlideUp 0.25s ease-out;
+  max-width: min(480px, calc(100vw - 32px));
+  box-sizing: border-box;
+}
+
+@keyframes toastSlideUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (max-width: 640px) {
+  .portaal-toast-notification {
+    bottom: 20px;
+    left: 16px;
+    right: 16px;
+    max-width: calc(100vw - 32px);
+    width: auto;
+    padding: 14px 18px;
+    font-size: 0.94rem;
+    gap: 12px;
+    border-radius: 14px;
+  }
+}
+
 
 

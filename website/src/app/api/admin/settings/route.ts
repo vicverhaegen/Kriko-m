@@ -114,16 +114,79 @@ export async function PATCH(req: NextRequest) {
       if (Array.isArray(src.leaders)) {
         target.leaders = (src.leaders as unknown[])
           .filter(l => l && typeof l === 'object')
-          .map(l => ({
-            name: String((l as Record<string, unknown>).name ?? '').slice(0, 120),
-            totem: String((l as Record<string, unknown>).totem ?? '').slice(0, 200),
-            role: String((l as Record<string, unknown>).role ?? '').slice(0, 120),
-            phone: String((l as Record<string, unknown>).phone ?? '').slice(0, 60),
-          }))
+          .map(l => {
+            const leaderObj = l as Record<string, unknown>
+            return {
+              id: String(leaderObj.id || Math.random().toString(36).substring(2, 9)),
+              name: String(leaderObj.name ?? '').slice(0, 120),
+              totem: String(leaderObj.totem ?? '').slice(0, 200),
+              role: String(leaderObj.role ?? '').slice(0, 120),
+              phone: String(leaderObj.phone ?? '').slice(0, 60),
+              is_groepsleiding: Boolean(leaderObj.is_groepsleiding),
+            }
+          })
           .filter(l => l.name)
       }
 
       merged[tak] = target
+    }
+
+    // Auto-synchroniseer alle leiding die 'is_groepsleiding: true' heeft naar merged.groepsleiding.leaders
+    const allGroepsleidingLeaders: Array<{ id: string; name: string; totem: string; role: string; phone: string; is_groepsleiding: boolean }> = []
+    
+    // 1. Directe groepsleiding leiding (die enkel in groepsleiding staat)
+    const directGrl = merged.groepsleiding?.leaders
+    if (Array.isArray(directGrl)) {
+      for (const dl of directGrl) {
+        if (dl && typeof dl === 'object' && dl.name) {
+          allGroepsleidingLeaders.push({
+            id: dl.id || Math.random().toString(36).substring(2, 9),
+            name: dl.name,
+            totem: dl.totem || '',
+            role: dl.role || 'Groepsleiding',
+            phone: dl.phone || '',
+            is_groepsleiding: true,
+          })
+        }
+      }
+    }
+
+    // 2. Leiding uit takken en opslag die is_groepsleiding hebben aangevinkt
+    const takKeys = ['kapoenen', 'welpen', 'jonggivers', 'givers', 'opslag']
+    for (const key of takKeys) {
+      const branchLeaders = merged[key]?.leaders
+      if (Array.isArray(branchLeaders)) {
+        for (const bl of branchLeaders) {
+          if (bl && typeof bl === 'object' && bl.is_groepsleiding && bl.name) {
+            // Voorkom dubbele vermeldingen
+            const existingIdx = allGroepsleidingLeaders.findIndex(item => item.name.toLowerCase().trim() === bl.name.toLowerCase().trim())
+            if (existingIdx === -1) {
+              allGroepsleidingLeaders.push({
+                id: bl.id || Math.random().toString(36).substring(2, 9),
+                name: bl.name,
+                totem: bl.totem || '',
+                role: bl.role || 'Groepsleiding',
+                phone: bl.phone || '',
+                is_groepsleiding: true,
+              })
+            } else {
+              // Update gegevens van bestaande groepsleiding indien gewijzigd in tak
+              allGroepsleidingLeaders[existingIdx] = {
+                ...allGroepsleidingLeaders[existingIdx],
+                name: bl.name,
+                totem: bl.totem || allGroepsleidingLeaders[existingIdx].totem,
+                phone: bl.phone || allGroepsleidingLeaders[existingIdx].phone,
+                role: bl.role || allGroepsleidingLeaders[existingIdx].role,
+              }
+            }
+          }
+        }
+      }
+    }
+
+    merged.groepsleiding = {
+      ...(merged.groepsleiding ?? {}),
+      leaders: allGroepsleidingLeaders,
     }
 
     update.takken = merged

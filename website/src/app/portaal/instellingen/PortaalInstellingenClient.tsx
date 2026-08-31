@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Settings } from '@/lib/types'
+import PortaalToast, { ToastState } from '../_components/PortaalToast'
 
 interface AccountInfo {
   id: string | null
@@ -192,16 +193,17 @@ export default function PortaalInstellingenClient({ initialSettings }: Props) {
       const data = await res.json()
       if (!res.ok || data.error) {
         setAccountError(data.error || 'Fout bij opslaan van account.')
+        showNotification('error', data.error || 'Fout bij opslaan van account.')
         return false
       } else {
-        const roleLabel = editingAccountRole === 'leiding' ? 'Leiding' : editingAccountRole === 'groepsleiding' ? 'Groepsleiding' : 'Webshop & uniformen'
-        setAccountSuccess(`Account voor ${roleLabel} succesvol bijgewerkt!`)
+        showNotification('success', 'Opgeslagen')
         await fetchAccounts()
         router.refresh()
         return true
       }
     } catch {
       setAccountError('Netwerkfout bij opslaan.')
+      showNotification('error', 'Netwerkfout bij opslaan.')
       return false
     } finally {
       setSavingAccount(false)
@@ -280,25 +282,8 @@ export default function PortaalInstellingenClient({ initialSettings }: Props) {
           </div>
         </div>
 
-        {/* Flash Message Banner */}
-        {flashMessage && (
-          <div style={{
-            padding: '12px 18px',
-            borderRadius: 12,
-            fontSize: '0.9rem',
-            fontWeight: 700,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 10,
-            marginBottom: 24,
-            backgroundColor: flashMessage.type === 'success' ? '#EBF0F9' : '#FDF0F2',
-            color: flashMessage.type === 'success' ? '#162544' : '#B23A4D',
-            border: `1.5px solid ${flashMessage.type === 'success' ? '#CBD5E1' : '#E0C0C4'}`,
-          }}>
-            <i className={`fa-solid ${flashMessage.type === 'success' ? 'fa-check-circle' : 'fa-triangle-exclamation'}`} />
-            <span>{flashMessage.text}</span>
-          </div>
-        )}
+        {/* Toast Notificatie (Portaalblauw) */}
+        <PortaalToast toast={flashMessage} onClose={() => setFlashMessage(null)} />
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
           
