@@ -285,7 +285,6 @@ export default function TakPageClient({
                         src={takPhotoSrc}
                         alt={`Leidingsploeg ${takName}`}
                         fill
-                        unoptimized
                         style={{ objectFit: 'cover' }}
                         sizes="340px"
                       />

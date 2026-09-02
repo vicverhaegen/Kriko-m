@@ -46,7 +46,6 @@ export default async function HomePage() {
           alt="Scouts Kriko-M"
           fill
           priority
-          unoptimized
           uploadType="home-hero-foto"
           className="hero-img"
           imageStyle={{ objectFit: 'cover' }}

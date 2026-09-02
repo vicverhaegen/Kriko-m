@@ -25,36 +25,53 @@ export default function CheckoutForm() {
     setStatus('sending')
     setError('')
     const fd = new FormData(e.currentTarget)
-    const res = await fetch('/api/orders', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        customer_name: fd.get('customer_name'),
-        email: fd.get('email'),
-        kriko_hp_verify: fd.get('kriko_hp_verify'),
-        _sec_token: loadedAt,
-        cart: items,
-        payment_method: paymentMethod,
-      }),
-    })
-    if (res.ok) {
-      const data = await res.json()
-      const orderToStore = {
-        order_ref: data.order_ref || data.communication || 'KM-0001',
-        communication: data.communication || data.order_ref || 'KM-0001',
-        total: typeof data.total === 'number' ? data.total : totalPrice,
-        items: Array.isArray(data.items) && data.items.length > 0 ? data.items : items,
-        bank_iban: data.bank_iban || 'BE59 7360 6413 2626',
-        bank_holder: data.bank_holder || 'Scouts Kriko-M vzw',
-        webshop_email: data.webshop_email || 'bestellingen@kriko-m.be',
-        payment_method: data.payment_method || paymentMethod,
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 25000)
+
+    try {
+      const res = await fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          customer_name: fd.get('customer_name'),
+          email: fd.get('email'),
+          kriko_hp_verify: fd.get('kriko_hp_verify'),
+          _sec_token: loadedAt,
+          cart: items,
+          payment_method: paymentMethod,
+        }),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      if (res.ok) {
+        const data = await res.json()
+        const orderToStore = {
+          order_ref: data.order_ref || data.communication || 'KM-0001',
+          communication: data.communication || data.order_ref || 'KM-0001',
+          total: typeof data.total === 'number' ? data.total : totalPrice,
+          items: Array.isArray(data.items) && data.items.length > 0 ? data.items : items,
+          bank_iban: data.bank_iban || 'BE59 7360 6413 2626',
+          bank_holder: data.bank_holder || 'Scouts Kriko-M vzw',
+          webshop_email: data.webshop_email || 'bestellingen@kriko-m.be',
+          payment_method: data.payment_method || paymentMethod,
+        }
+        clearCart()
+        sessionStorage.setItem('kriko_last_order', JSON.stringify(orderToStore))
+        router.push('/shop/bevestiging')
+      } else {
+        const data = await res.json().catch(() => ({}))
+        setError(data.error ?? 'Er ging iets mis. Probeer het opnieuw.')
+        setStatus('idle')
       }
-      clearCart()
-      sessionStorage.setItem('kriko_last_order', JSON.stringify(orderToStore))
-      router.push('/shop/bevestiging')
-    } else {
-      const data = await res.json().catch(() => ({}))
-      setError(data.error ?? 'Er ging iets mis. Probeer het opnieuw.')
+    } catch (err: unknown) {
+      clearTimeout(timeoutId)
+      if (err instanceof Error && err.name === 'AbortError') {
+        setError('Het verwerken van je bestelling duurde te lang door een trage verbinding. Controleer je internet en probeer opnieuw.')
+      } else {
+        setError('Er kon geen verbinding worden gemaakt met de server. Controleer je internetverbinding en probeer opnieuw.')
+      }
       setStatus('idle')
     }
   }

@@ -4,6 +4,7 @@ import { Analytics } from "@vercel/analytics/next";
 import "./globals.css";
 import "@fortawesome/fontawesome-free/css/all.min.css";
 import ThemeSynchronizer from "@/components/ThemeSynchronizer";
+import RouteProgressBar from "@/components/RouteProgressBar";
 
 // Zelf-gehoste fonts (next/font) i.p.v. de Google Fonts CDN — sneller en
 // GDPR-vriendelijk (geen verbinding met Google bij paginabezoek).
@@ -92,6 +93,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <ThemeSynchronizer />
+        <RouteProgressBar />
         {children}
         <Analytics />
       </body>

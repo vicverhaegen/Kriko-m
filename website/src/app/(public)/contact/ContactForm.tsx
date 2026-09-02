@@ -3,16 +3,45 @@
 import { useState } from 'react'
 
 export default function ContactForm() {
-  const [status, setStatus] = useState<'idle'|'sending'|'ok'|'error'>('idle')
+  const [status, setStatus] = useState<'idle' | 'sending' | 'ok' | 'error'>('idle')
+  const [errorMessage, setErrorMessage] = useState('')
   const [loadedAt] = useState<number>(() => Date.now())
 
   async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setStatus('sending')
-    const data = Object.fromEntries(new FormData(e.currentTarget))
-    data._t = String(loadedAt)
-    const res = await fetch('/api/contact', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify(data) })
-    setStatus(res.ok ? 'ok' : 'error')
+    setErrorMessage('')
+
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), 20000)
+
+    try {
+      const data = Object.fromEntries(new FormData(e.currentTarget))
+      data._t = String(loadedAt)
+      const res = await fetch('/api/contact', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+        signal: controller.signal,
+      })
+      clearTimeout(timeoutId)
+
+      if (res.ok) {
+        setStatus('ok')
+      } else {
+        const result = await res.json().catch(() => ({}))
+        setErrorMessage(result.error || 'Er ging iets mis bij het versturen. Probeer het opnieuw of stuur ons een e-mail.')
+        setStatus('error')
+      }
+    } catch (err: unknown) {
+      clearTimeout(timeoutId)
+      if (err instanceof Error && err.name === 'AbortError') {
+        setErrorMessage('Het verzoek duurde te lang (time-out door trage verbinding). Controleer je internet en probeer opnieuw.')
+      } else {
+        setErrorMessage('Er kon geen verbinding worden gemaakt met de server. Controleer je internetverbinding en probeer opnieuw.')
+      }
+      setStatus('error')
+    }
   }
 
   if (status === 'ok') {
@@ -50,7 +79,9 @@ export default function ContactForm() {
         <textarea name="message" required maxLength={5000} className="form-control" rows={6} placeholder="Stel hier je vraag…" style={{ resize: 'vertical' }} />
       </div>
       {status === 'error' && (
-        <p style={{ color: 'var(--color-error)', marginBottom: 16 }}>Er ging iets mis. Probeer het opnieuw of stuur een e-mail.</p>
+        <div style={{ background: 'hsla(4,75%,48%,0.1)', border: '1.5px solid var(--color-error)', color: 'var(--color-error)', padding: '12px 16px', borderRadius: 'var(--border-radius-md, 8px)', marginBottom: 16, fontSize: '0.92rem', fontWeight: 600 }}>
+          {errorMessage || 'Er ging iets mis. Probeer het opnieuw of stuur ons een e-mail.'}
+        </div>
       )}
       <p style={{ fontSize: '0.85rem', color: 'var(--color-text-muted)', marginBottom: 16 }}>
         Door dit formulier te versturen ga je akkoord met onze <a href="/privacy" target="_blank" style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>privacyverklaring</a>.

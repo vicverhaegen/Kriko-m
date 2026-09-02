@@ -1,7 +1,6 @@
 'use client'
 import { useEffect, useState } from 'react'
 import Link from 'next/link'
-import jsPDF from 'jspdf'
 import ProtectedEmail from '@/components/anti-scraping/ProtectedEmail'
 
 interface OrderData {
@@ -57,10 +56,11 @@ export default function BevestigingPage() {
   const items = Array.isArray(order.items) ? order.items : []
   const orderRef = order.order_ref || order.communication || 'Bestelling'
 
-  function handleDownloadPdf() {
+  async function handleDownloadPdf() {
     if (!order) return
     setDownloadingPdf(true)
     try {
+      const { default: jsPDF } = await import('jspdf')
       const doc = new jsPDF({ unit: 'pt', format: 'a4' })
       const pageWidth = doc.internal.pageSize.getWidth()
 

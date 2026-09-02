@@ -144,10 +144,13 @@ export async function POST(req: NextRequest) {
       console.warn('Kon communication niet updaten op order:', updateError)
     }
 
+    // E-mails parallel verzenden via Promise.allSettled om server-reactietijd bij traag internet te minimaliseren
+    const emailPromises: Promise<unknown>[] = []
+
     // 1. E-mail naar koper
     if (enableCustomerEmail) {
-      try {
-        await sendOrderConfirmation({
+      emailPromises.push(
+        sendOrderConfirmation({
           to: email.trim(),
           orderRef,
           customerName: customer_name.trim(),
@@ -157,16 +160,16 @@ export async function POST(req: NextRequest) {
           bankIban,
           bankHolder,
           paymentMethod,
+        }).catch((mailErr) => {
+          console.error('Koper bevestigingsmail mislukt:', mailErr)
         })
-      } catch (mailErr) {
-        console.error('Koper bevestigingsmail mislukt:', mailErr)
-      }
+      )
     }
 
     // 2. Notificatiemail naar webshopverantwoordelijke
     if (enableTeamEmail && webshopEmail) {
-      try {
-        await sendWebshopOrderNotification({
+      emailPromises.push(
+        sendWebshopOrderNotification({
           to: webshopEmail,
           orderRef,
           customerName: customer_name.trim(),
@@ -177,16 +180,16 @@ export async function POST(req: NextRequest) {
           bankIban,
           bankHolder,
           paymentMethod,
+        }).catch((orderMailErr) => {
+          console.error('Notificatiemail mislukt:', orderMailErr)
         })
-      } catch (orderMailErr) {
-        console.error('Notificatiemail mislukt:', orderMailErr)
-      }
+      )
     }
 
     // 3. Notificatiemail naar financieel verantwoordelijke (enkel bij overschrijving)
     if (enableFinancialEmail && paymentMethod === 'overschrijving' && webshopFinancialEmail) {
-      try {
-        await sendFinancialOrderNotification({
+      emailPromises.push(
+        sendFinancialOrderNotification({
           to: webshopFinancialEmail,
           orderRef,
           customerName: customer_name.trim(),
@@ -196,10 +199,14 @@ export async function POST(req: NextRequest) {
           communication,
           bankIban,
           bankHolder,
+        }).catch((finMailErr) => {
+          console.error('Financiële notificatiemail mislukt:', finMailErr)
         })
-      } catch (finMailErr) {
-        console.error('Financiële notificatiemail mislukt:', finMailErr)
-      }
+      )
+    }
+
+    if (emailPromises.length > 0) {
+      await Promise.allSettled(emailPromises)
     }
 
     return NextResponse.json({
