@@ -24,11 +24,6 @@ export default function Header({ alertActive, alertMessage }: HeaderProps) {
 
   return (
     <>
-      {/* Laadscherm */}
-      <div id="loading-screen" aria-hidden="true">
-        <img src="/images/logo-finaal.png" alt="Kriko-M laden…" />
-        <div className="loading-bar-wrap"><div className="loading-bar"></div></div>
-      </div>
 
       {/* Aankondigingsbanner */}
       {alertActive && alertMessage && !alertDismissed && (
