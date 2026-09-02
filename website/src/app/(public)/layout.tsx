@@ -7,6 +7,9 @@ export default async function PublicLayout({ children }: { children: React.React
 
   return (
     <>
+      <div style={{ backgroundColor: '#660C19', color: '#fff', textAlign: 'center', padding: '12px 16px', fontWeight: 'bold', fontSize: '15px', zIndex: 9999, position: 'relative', borderBottom: '2px solid #E5A823' }}>
+        🕰️ ARCHIEF PREVIEW: Eerste functionele React/Next.js versie (7 juni 2026)
+      </div>
       <Header
         alertActive={settings?.alert_active ?? false}
         alertMessage={settings?.alert_message ?? ''}
