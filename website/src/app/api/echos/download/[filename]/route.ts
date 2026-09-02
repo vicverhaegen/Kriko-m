@@ -12,5 +12,10 @@ export async function GET(
   }
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
   const url = `${supabaseUrl}/storage/v1/object/public/echos/${encodeURIComponent(filename)}`
-  return NextResponse.redirect(url)
+  return NextResponse.redirect(url, {
+    status: 307,
+    headers: {
+      'Cache-Control': 'public, max-age=31536000, s-maxage=31536000, immutable',
+    },
+  })
 }

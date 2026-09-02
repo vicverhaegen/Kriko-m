@@ -73,10 +73,43 @@ export function EditProvider({
     )
     const active = editQuery || storedEdit
 
+    if (typeof window === 'undefined') return
+
+    // 0. If edit mode is NOT requested (?edit=true or active edit session), exit immediately (0 API calls)
+    if (!active) {
+      setIsEditMode(false)
+      return
+    }
+
+    // 1. If visitor has no auth token cookie at all, skip network call completely
+    const hasAuthCookie = document.cookie.includes('-auth-token')
+    if (!hasAuthCookie) {
+      setIsGroepsleiding(false)
+      setIsEditMode(false)
+      try {
+        sessionStorage.removeItem('kriko_is_gl')
+        sessionStorage.removeItem('kriko_edit_mode')
+      } catch {}
+      return
+    }
+
+    // 2. If we already verified groepsleiding status in this browser session, reuse cached result
+    const cachedGL = sessionStorage.getItem('kriko_is_gl')
+    if (cachedGL !== null) {
+      const isGL = cachedGL === 'true'
+      setIsGroepsleiding(isGL)
+      setIsEditMode(isGL && active)
+      return
+    }
+
+    // 3. Otherwise, fetch once and cache the result in sessionStorage for the rest of the session
     fetch('/api/admin/check-groepsleiding')
       .then(res => res.json())
       .then(data => {
         const isGL = Boolean(data.isGroepsleiding)
+        try {
+          sessionStorage.setItem('kriko_is_gl', isGL ? 'true' : 'false')
+        } catch {}
         setIsGroepsleiding(isGL)
         setIsEditMode(isGL && active)
       })

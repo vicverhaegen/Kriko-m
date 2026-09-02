@@ -1,8 +1,9 @@
 'use client'
 
-import { useState, useEffect, ReactNode } from 'react'
-import { useSearchParams, useRouter } from 'next/navigation'
+import { useState, ReactNode } from 'react'
+import { useRouter } from 'next/navigation'
 import EditBlockModal, { BlockType } from './EditBlockModal'
+import { useEditMode } from './EditContext'
 
 interface Props {
   blockKey: string
@@ -30,26 +31,9 @@ export default function EditableBlock({
   style = {},
 }: Props) {
   const router = useRouter()
-  const searchParams = useSearchParams()
-
-  const [isGroepsleiding, setIsGroepsleiding] = useState(false)
-  const [isEditMode, setIsEditMode] = useState(false)
+  const { isGroepsleiding, isEditMode } = useEditMode()
   const [isHovered, setIsHovered] = useState(false)
   const [isModalOpen, setIsModalOpen] = useState(false)
-
-  useEffect(() => {
-    const editQuery = searchParams.get('edit') === 'true'
-    const storedEdit = Boolean(
-      typeof window !== 'undefined' &&
-      (sessionStorage.getItem('kriko_edit_mode') === 'true' || localStorage.getItem('kriko_edit_mode') === 'true')
-    )
-    setIsEditMode(editQuery || storedEdit)
-
-    fetch('/api/admin/check-groepsleiding')
-      .then(res => res.json())
-      .then(data => setIsGroepsleiding(Boolean(data.isGroepsleiding)))
-      .catch(() => setIsGroepsleiding(false))
-  }, [searchParams])
 
   const canEdit = isGroepsleiding && isEditMode
 

@@ -72,7 +72,11 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
 
   async function handleLogout() {
     await supabase.auth.signOut()
-    try { localStorage.removeItem('kriko_cart') } catch {}
+    try {
+      localStorage.removeItem('kriko_cart')
+      sessionStorage.removeItem('kriko_is_gl')
+      sessionStorage.removeItem('kriko_edit_mode')
+    } catch {}
     router.push('/portaal')
     router.refresh()
   }

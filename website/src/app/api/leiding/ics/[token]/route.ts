@@ -38,7 +38,9 @@ export async function GET(
 
     const headers: Record<string, string> = {
       'Content-Type': 'text/calendar; charset=utf-8',
-      'Cache-Control': 'no-cache, must-revalidate',
+      'Cache-Control': download
+        ? 'no-cache, no-store, must-revalidate'
+        : 'public, s-maxage=21600, stale-while-revalidate=86400',
     }
 
     if (download) {

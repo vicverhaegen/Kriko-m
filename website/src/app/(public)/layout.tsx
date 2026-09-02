@@ -9,6 +9,8 @@ import { EditProvider } from '@/components/editing/EditContext'
 import ContentLinkInterceptor from '@/components/editing/ContentLinkInterceptor'
 import { getSettings, getSiteContent } from '@/lib/db'
 
+export const revalidate = 86400 // 24 uur ISR cache voor publieke pagina's
+
 export default async function PublicLayout({ children }: { children: React.ReactNode }) {
   const [settings, siteContent] = await Promise.all([
     getSettings(),
