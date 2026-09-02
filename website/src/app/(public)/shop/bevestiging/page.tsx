@@ -14,10 +14,9 @@ interface OrderData {
   payment_method?: 'overschrijving' | 'cash'
 }
 
-const formatEuro = (n: number | undefined | null) => {
-  const val = typeof n === 'number' && !isNaN(n) ? n : Number(n) || 0
-  return '€' + val.toFixed(2).replace('.', ',')
-}
+import { formatPrice } from '@/lib/utils'
+
+const formatEuro = (n: number | undefined | null) => formatPrice(typeof n === 'number' && !isNaN(n) ? n : Number(n) || 0)
 
 export default function BevestigingPage() {
   const [order, setOrder] = useState<OrderData | null>(null)

@@ -14,12 +14,9 @@ CREATE TABLE IF NOT EXISTS settings (
   webshop_email             TEXT    NOT NULL DEFAULT 'groepsleiding@kriko-m.be',
   contact_phone             TEXT    NOT NULL DEFAULT '',
   contact_address           TEXT    NOT NULL DEFAULT '',
-  alert_message             TEXT    NOT NULL DEFAULT '',
-  alert_active              BOOLEAN NOT NULL DEFAULT false,
   reg_fee_first             NUMERIC(8,2) NOT NULL DEFAULT 50.00,
   reg_fee_extra             NUMERIC(8,2) NOT NULL DEFAULT 45.00,
   home_leiding_foto         TEXT    NOT NULL DEFAULT '/images/leiding_25-26.jpg',
-  portal_backgrounds        JSONB   NOT NULL DEFAULT '{}'::jsonb,
   takken                    JSONB   NOT NULL DEFAULT '{}'::jsonb,
   concept                   JSONB   NOT NULL DEFAULT '{}'::jsonb,
   CONSTRAINT settings_single_row CHECK (id = 1)
@@ -28,14 +25,13 @@ CREATE TABLE IF NOT EXISTS settings (
 INSERT INTO settings (
   id, scouts_year, bank_iban, bank_bic, bank_holder,
   contact_email, webshop_email, contact_phone, contact_address,
-  alert_message, alert_active, reg_fee_first, reg_fee_extra, home_leiding_foto, portal_backgrounds, takken
+  reg_fee_first, reg_fee_extra, home_leiding_foto, takken
 ) VALUES (
   1, '2026-2027',
   'BE76 1234 5678 9012', 'KRIKOBE2B', 'Scouts Kriko-M vzw',
   'groepsleiding@kriko-m.be', 'groepsleiding@kriko-m.be', '+32 3 776 00 00', 'Industriepark-Noord 33, 9100 Sint-Niklaas',
-  'Welkom op de nieuwe website van Scouts Kriko-M!', false,
   50.00, 45.00,
-  '/images/leiding_25-26.jpg', '{}'::jsonb,
+  '/images/leiding_25-26.jpg',
   '{
     "kapoenen":   {"name":"Kapoenen",   "age_range":"6 - 8 jaar",   "school_year":"1e & 2e leerjaar",              "email":"kapoenenleiding@kriko-m.be",   "class":"kapoenen"},
     "welpen":     {"name":"Welpen",     "age_range":"8 - 11 jaar",  "school_year":"3e, 4e & 5e leerjaar",         "email":"welpenleiding@kriko-m.be",     "class":"welpen"},
@@ -128,7 +124,6 @@ CREATE TABLE IF NOT EXISTS orders (
   items           JSONB   NOT NULL DEFAULT '[]'::jsonb,
   total           NUMERIC(10,2) NOT NULL DEFAULT 0,
   communication   TEXT    NOT NULL DEFAULT '',
-  parent_id       UUID    REFERENCES auth.users(id) ON DELETE SET NULL,
   created_at      TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
@@ -136,30 +131,7 @@ CREATE INDEX IF NOT EXISTS orders_status_idx    ON orders(status);
 CREATE INDEX IF NOT EXISTS orders_email_idx     ON orders(email);
 
 
--- ── 7. KAMPEN ───────────────────────────────────────────────
-CREATE TABLE IF NOT EXISTS kampen (
-  id                      TEXT    PRIMARY KEY DEFAULT 'kamp_' || gen_random_uuid(),
-  naam                    TEXT    NOT NULL,
-  tak                     TEXT    NOT NULL CHECK (tak IN ('kapoenen','welpen','jonggivers','givers','alle')),
-  datum_van               DATE    NOT NULL,
-  datum_tot               DATE    NOT NULL,
-  locatie                 TEXT    NOT NULL DEFAULT '',
-  beschrijving            TEXT    NOT NULL DEFAULT '',
-  open_voor_inschrijving   BOOLEAN NOT NULL DEFAULT false,
-  prijs                   NUMERIC(8,2) NOT NULL DEFAULT 0,
-  foto                    TEXT    NOT NULL DEFAULT '',
-  paklijst                JSONB   NOT NULL DEFAULT '[]'::jsonb,
-  briefadres              TEXT    NOT NULL DEFAULT '',
-  contact_info            TEXT    NOT NULL DEFAULT '',
-  werkjaar                TEXT    NOT NULL DEFAULT '2026-2027',
-  aangemaakt_op           TIMESTAMPTZ NOT NULL DEFAULT now(),
-  aangemaakt_door         TEXT    NOT NULL DEFAULT ''
-);
-
-CREATE INDEX IF NOT EXISTS kampen_werkjaar_idx ON kampen(werkjaar);
-
-
--- ── 8. PORTAL RESOURCES (Documenten & Links) ───────────────
+-- ── 7. PORTAL RESOURCES (Documenten & Links) ───────────────
 CREATE TABLE IF NOT EXISTS portal_resources (
   id          TEXT PRIMARY KEY DEFAULT 'res_' || gen_random_uuid(),
   type        TEXT NOT NULL CHECK (type IN ('quicklink', 'document')),
@@ -181,32 +153,6 @@ INSERT INTO portal_resources (id, type, category, label, description, url, icon,
 ON CONFLICT (id) DO NOTHING;
 
 
--- ── 9. TODOS & CHECKLISTS ───────────────────────────────────
-CREATE TABLE IF NOT EXISTS todos (
-  id          TEXT        PRIMARY KEY DEFAULT 'todo_' || gen_random_uuid(),
-  title       TEXT        NOT NULL,
-  month       SMALLINT    NOT NULL CHECK (month BETWEEN 1 AND 12),
-  completed   BOOLEAN     NOT NULL DEFAULT false,
-  tak         TEXT        NOT NULL CHECK (tak IN ('groep','kapoenen','welpen','jonggivers','givers')),
-  werkjaar    TEXT        NOT NULL DEFAULT '2026-2027',
-  created_at  TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-CREATE INDEX IF NOT EXISTS todos_tak_month_idx ON todos(tak, month);
-
-
--- ── 10. CONTACTBERICHTEN ────────────────────────────────────
-CREATE TABLE IF NOT EXISTS messages (
-  id         TEXT    PRIMARY KEY DEFAULT 'msg_' || gen_random_uuid(),
-  name       TEXT    NOT NULL,
-  email      TEXT    NOT NULL,
-  subject    TEXT    NOT NULL DEFAULT '',
-  message    TEXT    NOT NULL,
-  read       BOOLEAN NOT NULL DEFAULT false,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
-
-
 -- ============================================================
 --  ROW LEVEL SECURITY POLICIES
 -- ============================================================
@@ -216,17 +162,11 @@ ALTER TABLE calendar           ENABLE ROW LEVEL SECURITY;
 ALTER TABLE echos              ENABLE ROW LEVEL SECURITY;
 ALTER TABLE shop_products      ENABLE ROW LEVEL SECURITY;
 ALTER TABLE orders             ENABLE ROW LEVEL SECURITY;
-ALTER TABLE kampen             ENABLE ROW LEVEL SECURITY;
 ALTER TABLE portal_resources   ENABLE ROW LEVEL SECURITY;
-ALTER TABLE todos              ENABLE ROW LEVEL SECURITY;
-ALTER TABLE messages           ENABLE ROW LEVEL SECURITY;
 
 CREATE POLICY "Publiek: settings lezen"       ON settings           FOR SELECT USING (true);
 CREATE POLICY "Publiek: site_content lezen"   ON site_content       FOR SELECT USING (true);
 CREATE POLICY "Publiek: kalender lezen"       ON calendar           FOR SELECT USING (true);
 CREATE POLICY "Publiek: echos lezen"          ON echos              FOR SELECT USING (true);
 CREATE POLICY "Publiek: shop lezen"           ON shop_products      FOR SELECT USING (true);
-CREATE POLICY "Publiek: kampen lezen"         ON kampen             FOR SELECT USING (true);
 CREATE POLICY "Publiek: resources lezen"      ON portal_resources   FOR SELECT USING (true);
-CREATE POLICY "Publiek: todos lezen"          ON todos              FOR SELECT USING (true);
-CREATE POLICY "Iedereen mag contact sturen"   ON messages           FOR INSERT WITH CHECK (true);

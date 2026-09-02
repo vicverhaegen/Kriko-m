@@ -14,7 +14,7 @@ function getClient(): Resend | null {
   return new Resend(key)
 }
 
-const euro = (n: number) => '€' + n.toFixed(2).replace('.', ',')
+import { formatPrice as euro } from './utils'
 const esc = (s: string) =>
   s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
 
@@ -470,9 +470,6 @@ export async function sendFinancialOrderNotification(params: FinancialOrderNotif
     console.error('Resend fout bij verzenden financiële notificatie:', res.error)
   }
 }
-
-// Alias for backwards compatibility
-export const sendKatrienNotification = sendWebshopOrderNotification
 
 interface ContactFormNotificationParams {
   to?: string

@@ -5,6 +5,7 @@ import { Settings } from '@/lib/types'
 import CopyButton from '@/components/CopyButton'
 import ConfirmDialog from '../_components/ConfirmDialog'
 import PortaalToast from '../_components/PortaalToast'
+import { formatPrice } from '@/lib/utils'
 
 interface OrderItem {
   name: string
@@ -419,7 +420,7 @@ export default function WebshopPageClient({
           {/* Rechterkant: Prijs + Chevron */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
             <strong style={{ fontSize: '1.05rem', fontWeight: 900, color: '#650B19', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
-              €{(ord.total || 0).toFixed(2).replace('.', ',')}
+              {formatPrice(ord.total || 0)}
             </strong>
             <div style={{
               width: 28,
@@ -781,7 +782,7 @@ export default function WebshopPageClient({
                   <strong style={{ color: '#162544' }}>{item.quantity}×</strong> {item.name} {item.size && item.size !== '-' && item.size !== 'Standaard' ? <span style={{ color: '#64748B', fontSize: '0.82rem' }}>({item.size})</span> : ''}
                 </span>
                 <span style={{ fontWeight: 700, color: '#334155' }}>
-                  €{(item.price * item.quantity).toFixed(2).replace('.', ',')}
+                  {formatPrice(item.price * item.quantity)}
                 </span>
               </div>
             ))}
@@ -793,7 +794,7 @@ export default function WebshopPageClient({
               Eindtotaal
             </span>
             <strong style={{ fontSize: '1.15rem', fontWeight: 900, color: '#650B19', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
-              €{(ord.total || 0).toFixed(2).replace('.', ',')}
+              {formatPrice(ord.total || 0)}
             </strong>
           </div>
 

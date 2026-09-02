@@ -4,17 +4,16 @@ import { createAdminClient } from './supabase'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 export function normalizeSettings(data: any): any {
   if (!data) return data
-  const pb = (data.portal_backgrounds ?? {}) as Record<string, any>
   return {
     ...data,
-    home_title_leiding: data.home_title_leiding ?? pb.home_title_leiding ?? null,
-    home_subtitle_leiding: data.home_subtitle_leiding ?? pb.home_subtitle_leiding ?? null,
-    home_title_groepsleiding: data.home_title_groepsleiding ?? pb.home_title_groepsleiding ?? null,
-    home_subtitle_groepsleiding: data.home_subtitle_groepsleiding ?? pb.home_subtitle_groepsleiding ?? null,
-    portal_login_foto: data.portal_login_foto ?? pb.portal_login_foto ?? null,
-    webshop_enable_customer_email: data.webshop_enable_customer_email ?? (pb.webshop_enable_customer_email !== undefined ? pb.webshop_enable_customer_email : true),
-    webshop_enable_financial_email: data.webshop_enable_financial_email ?? (pb.webshop_enable_financial_email !== undefined ? pb.webshop_enable_financial_email : true),
-    webshop_enable_team_email: data.webshop_enable_team_email ?? (pb.webshop_enable_team_email !== undefined ? pb.webshop_enable_team_email : true),
+    home_title_leiding: data.home_title_leiding ?? null,
+    home_subtitle_leiding: data.home_subtitle_leiding ?? null,
+    home_title_groepsleiding: data.home_title_groepsleiding ?? null,
+    home_subtitle_groepsleiding: data.home_subtitle_groepsleiding ?? null,
+    portal_login_foto: data.portal_login_foto ?? null,
+    webshop_enable_customer_email: data.webshop_enable_customer_email ?? true,
+    webshop_enable_financial_email: data.webshop_enable_financial_email ?? true,
+    webshop_enable_team_email: data.webshop_enable_team_email ?? true,
   }
 }
 
@@ -148,53 +147,6 @@ export const getShopProducts = unstable_cache(
   },
   ['shop-products-cache-v2'],
   { revalidate: 86400, tags: ['shop-products'] }
-)
-
-export async function getOrders() {
-  try {
-    const supabase = createAdminClient()
-    const { data } = await supabase
-      .from('orders')
-      .select('*')
-      .order('created_at', { ascending: false })
-    return data ?? []
-  } catch (err) {
-    console.error('getOrders exception:', err)
-    return []
-  }
-}
-
-export async function getMessages() {
-  try {
-    const supabase = createAdminClient()
-    const { data } = await supabase
-      .from('messages')
-      .select('*')
-      .order('created_at', { ascending: false })
-    return data ?? []
-  } catch (err) {
-    console.error('getMessages exception:', err)
-    return []
-  }
-}
-
-export const getVerslagen = unstable_cache(
-  async () => {
-    try {
-      const supabase = createAdminClient()
-      const { data } = await supabase
-        .from('verslagen')
-        .select('*')
-        .eq('published', true)
-        .order('date', { ascending: false })
-      return data ?? []
-    } catch (err) {
-      console.error('getVerslagen exception:', err)
-      return []
-    }
-  },
-  ['verslagen-cache'],
-  { revalidate: 86400, tags: ['verslagen'] }
 )
 
 export const getSiteContent = unstable_cache(

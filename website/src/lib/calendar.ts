@@ -1,4 +1,4 @@
-import { CalendarEvent, CalendarEntry } from './types'
+import { CalendarEvent, AudienceTag } from './types'
 
 export const PRESET_EVENT_ICONS = [
   { id: 'fa-star', label: 'Groot Event' },
@@ -22,13 +22,6 @@ export const PRESET_EVENT_ICONS = [
 export function getEventIcon(event: CalendarEvent): string {
   return event.icon || ''
 }
-
-// Zet een echt kalender-event om naar een CalendarEntry.
-export function eventToEntry(ev: CalendarEvent): CalendarEntry {
-  return { ...ev, source: 'event' }
-}
-
-export type AudienceTag = 'groep' | 'grl' | 'leiding' | 'kapoenen' | 'welpen' | 'jonggivers' | 'givers'
 
 export const AUDIENCE_PRIORITY: AudienceTag[] = [
   'groep',

@@ -91,8 +91,8 @@ Always use these colors and fonts to keep the UI consistent and professional.
    * Always wrap physical addresses in Google Maps search links (`https://www.google.com/maps/search/?api=1&query=...`).
 5. **CSS Pictograms:**
    * Always use hex-escaped Unicode characters in CSS `content` (e.g., `content: '\269C'`) for banner title pictograms. Avoid printing literal emojis/special characters directly in `.css` files to prevent Mojibake encoding corruption during compiles.
-6. **Horizontal Scrolling Nav (Portaal):**
-   * The navigation links in `PortaalNav` scroll horizontally on mobile screens using `flex-nowrap` and `overflow-x-auto`. Keep it this way; do not wrap them or hide them behind hamburgers.
+6. **Portaal Sidebar Navigation:**
+   * The portal navigation is managed via `PortaalSidebar.tsx` with a responsive sidebar and mobile drawer.
 7. **Responsive Layouts:**
    * Use `.portal-grid-layout` (which drops from 2-column `1fr 3fr` to 1-column layout on media query max-width 768px) instead of inline styles for main portal layouts like `LeidingPanel.tsx`.
 8. **Calendar system — 3 agendas & audience tags:**

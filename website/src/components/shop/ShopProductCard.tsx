@@ -2,6 +2,7 @@
 import { useState } from 'react'
 import Image from 'next/image'
 import { useCart } from './CartProvider'
+import { formatPrice } from '@/lib/utils'
 
 interface Product {
   id: string
@@ -52,7 +53,7 @@ export default function ShopProductCard({ product }: { product: Product }) {
 
       <div className="shop-card-body">
         <h3 className="shop-card-title">{product.name}</h3>
-        <div className="shop-card-price">€{product.price.toFixed(2).replace('.', ',')}</div>
+        <div className="shop-card-price">{formatPrice(product.price)}</div>
         <p className="shop-card-desc">{product.description}</p>
 
         {product.sizes && product.sizes.length > 0 && (

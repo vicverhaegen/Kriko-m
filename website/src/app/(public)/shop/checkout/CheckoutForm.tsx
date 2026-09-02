@@ -2,6 +2,7 @@
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/components/shop/CartProvider'
+import { formatPrice } from '@/lib/utils'
 
 export default function CheckoutForm() {
   const { items, totalPrice, clearCart } = useCart()
@@ -251,13 +252,13 @@ export default function CheckoutForm() {
                   <div style={{ fontSize: '0.8rem', color: 'var(--color-text-muted)' }}>Maat: {item.size} | Aantal: {item.quantity}</div>
                 </div>
                 <div style={{ fontWeight: 800, color: 'var(--color-primary-dark)' }}>
-                  €{(item.price * item.quantity).toFixed(2).replace('.', ',')}
+                  {formatPrice(item.price * item.quantity)}
                 </div>
               </div>
             ))}
             <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 'bold', fontSize: '1.25rem', color: 'var(--color-primary-dark)', marginTop: 20, paddingTop: 16, borderTop: '2px solid var(--color-bg-linen)' }}>
               <span>Totaal:</span>
-              <span>€{totalPrice.toFixed(2).replace('.', ',')}</span>
+              <span>{formatPrice(totalPrice)}</span>
             </div>
           </div>
 

@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Image from 'next/image'
 import { useCart } from './CartProvider'
 import { Product } from '@/lib/types'
+import { formatPrice } from '@/lib/utils'
 
 export default function KentekenCard({ product }: { product: Product }) {
   const { addItem } = useCart()
@@ -78,7 +79,7 @@ export default function KentekenCard({ product }: { product: Product }) {
             fontWeight: 900,
             color: 'var(--color-primary-dark, #3a0710)',
           }}>
-            €{product.price.toFixed(2).replace('.', ',')}
+            {formatPrice(product.price)}
           </span>
         </div>
       </div>

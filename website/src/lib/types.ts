@@ -1,11 +1,3 @@
-export interface WerkjaarLeiding {
-  id: string
-  werkjaar: string
-  tak: 'kapoenen' | 'welpen' | 'jonggivers' | 'givers'
-  naam: string
-  rol: string
-}
-
 // Concept (draft) voor het volgende werkjaar — leeft in settings.concept.
 export interface WerkjaarConcept {
   werkjaar: string
@@ -28,8 +20,6 @@ export interface Settings {
   webshop_enable_team_email?: boolean
   contact_phone: string
   contact_address: string
-  alert_message: string
-  alert_active: boolean
   reg_fee_first: number
   reg_fee_extra: number
   home_leiding_foto?: string
@@ -48,8 +38,6 @@ export interface Settings {
   leiding_ics_token?: string
   // Geheim token voor de private groepsleiding-ICS-feed (zie /api/groepsleiding/ics).
   groepsleiding_ics_token?: string
-  // Per-tak portaalachtergrond-configuratie (zie /api/admin/portal-backgrounds).
-  portal_backgrounds?: Record<string, { style: string; custom_url?: string | null }>
 }
 
 export interface TakConfig {
@@ -96,11 +84,6 @@ export interface CalendarEvent {
   document_url?: string | null
   werkjaar?: string
   created_at?: string
-}
-
-export interface CalendarEntry extends CalendarEvent {
-  source?: 'event' | 'kamp'
-  slug?: string
 }
 
 export interface Echo {
@@ -152,47 +135,6 @@ export interface OrderItem {
   size: string
   price: number
   quantity: number
-}
-
-
-
-export interface Message {
-  id: string
-  name: string
-  email: string
-  subject: string
-  message: string
-  read: boolean
-  created_at?: string
-}
-
-export interface Verslag {
-  id: string
-  title: string
-  tak: 'kapoenen' | 'welpen' | 'jonggivers' | 'givers' | 'alle'
-  date: string
-  content: string
-  author: string
-  published: boolean
-  created_at?: string
-}
-
-export interface LeidingBericht {
-  id: string
-  content: string
-  author_naam: string
-  author_email: string
-  created_at: string
-}
-
-export interface TodoItem {
-  id: string
-  title: string
-  month: number
-  completed: boolean
-  tak: 'kapoenen' | 'welpen' | 'jonggivers' | 'givers' | 'groepsleiding'
-  werkjaar: string
-  created_at?: string
 }
 
 export interface PortalResource {

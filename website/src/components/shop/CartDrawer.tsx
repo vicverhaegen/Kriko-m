@@ -2,6 +2,7 @@
 import { useState, useRef, useEffect } from 'react'
 import Link from 'next/link'
 import { useCart } from './CartProvider'
+import { formatPrice } from '@/lib/utils'
 
 export default function CartDrawer() {
   const [open, setOpen] = useState(false)
@@ -86,7 +87,7 @@ export default function CartDrawer() {
                   </div>
                 </div>
                 <div style={{ textAlign: 'right', flexShrink: 0 }}>
-                  <div className="cart-item-price">€{(item.price * item.quantity).toFixed(2).replace('.', ',')}</div>
+                  <div className="cart-item-price">{formatPrice(item.price * item.quantity)}</div>
                   <button onClick={() => removeItem(item.id, item.size)} className="cart-item-remove" style={{ marginTop: 6 }}>
                     Verwijder
                   </button>
@@ -99,7 +100,7 @@ export default function CartDrawer() {
         <div className="shop-cart-foot">
           <div className="cart-subtotal">
             <span>Subtotaal</span>
-            <span className="cart-subtotal-value">€{totalPrice.toFixed(2).replace('.', ',')}</span>
+            <span className="cart-subtotal-value">{formatPrice(totalPrice)}</span>
           </div>
           <p className="shop-cart-note">
             Betaling via overschrijving. De gestructureerde mededeling verschijnt bij het afrekenen.

@@ -3,18 +3,10 @@
 export const TAKKEN = ['kapoenen', 'welpen', 'jonggivers', 'givers'] as const
 export type Tak = (typeof TAKKEN)[number]
 
-// Inclusief 'alle' voor kampen/verslagen die over de hele groep gaan.
-export const TAKKEN_MET_ALLE = [...TAKKEN, 'alle'] as const
-
 // Tabs in het leiding-portaal (volgorde = sidebar-volgorde).
-// De 4 leeftijdstakken + 'groepsleiding' (beheerstak, enkel zichtbaar voor rol
-// groepsleiding). "Evenementen" is GEEN tak — het is een kalender-tag (zie
-// AUDIENCE_TAGS, label "Groep").
+// De 4 leeftijdstakken + 'groepsleiding' (beheerstak) + 'opslag'.
 export const PORTAAL_TAKKEN = ['kapoenen', 'welpen', 'jonggivers', 'givers', 'groepsleiding', 'opslag'] as const
 export type PortaalTak = (typeof PORTAAL_TAKKEN)[number]
-
-// Tabs die enkel zichtbaar zijn voor rol groepsleiding.
-export const GROEPSLEIDING_ONLY_TAKKEN = ['groepsleiding'] as const
 
 export const LEIDINGBEHEER_KOLOMMEN = ['kapoenen', 'welpen', 'jonggivers', 'givers'] as const
 export type LeidingbeheerKolom = (typeof LEIDINGBEHEER_KOLOMMEN)[number]
@@ -32,15 +24,6 @@ export const TAK_NAMEN: Record<string, string> = {
   alle: 'Alle takken',
 }
 
-// Leeftijdslabels voor dropdowns.
-export const TAK_LABELS: Record<string, string> = {
-  opslag: 'Opslag (inactief)',
-  kapoenen: 'Kapoenen (6–8j)',
-  welpen: 'Welpen (8–11j)',
-  jonggivers: 'Jonggivers (11–14j)',
-  givers: 'Givers (14–17j)',
-}
-
 export const TAK_KLEUREN: Record<string, string> = {
   opslag: '#64748B',
   kapoenen: '#F4C842',
@@ -51,11 +34,10 @@ export const TAK_KLEUREN: Record<string, string> = {
   alle: '#1A3D2A',
 }
 
-// Audience-tags voor kalender én kampen (wie de activiteit betreft).
+// Audience-tags voor kalender (wie de activiteit betreft).
 // 'groep' = publiek op de website-kalender (enkel groepsleiding mag toekennen).
 // 'grl'   = exclusief voor groepsleiding (verborgen voor gewone leiding).
 export const AUDIENCE_TAGS = ['groep', 'leiding', 'grl', 'kapoenen', 'welpen', 'jonggivers', 'givers'] as const
-export type AudienceTagConst = (typeof AUDIENCE_TAGS)[number]
 
 export const AUDIENCE_NAMEN: Record<string, string> = {
   leiding: 'Leiding',
@@ -65,14 +47,6 @@ export const AUDIENCE_NAMEN: Record<string, string> = {
   givers: 'Givers',
   groep: 'Groep',
   grl: 'GRL',
-}
-
-// Kleuren per audience-tag (hergebruikt TAK_KLEUREN + leiding/groep/grl).
-export const AUDIENCE_KLEUREN: Record<string, string> = {
-  ...TAK_KLEUREN,
-  leiding: '#650B19', // bordeaux
-  groep: '#C9963A',   // goud
-  grl: '#1E7E52',     // groen (GRL)
 }
 
 // Kleuren per audience-tag specifiek voor het leidingsportaal
