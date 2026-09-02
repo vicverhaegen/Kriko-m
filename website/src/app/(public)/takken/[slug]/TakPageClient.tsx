@@ -167,6 +167,7 @@ export default function TakPageClient({
           alt={takName}
           fill
           priority
+          unoptimized
           uploadType="tak-banner"
           imageStyle={{ objectFit: 'cover', zIndex: 1 }}
         />
