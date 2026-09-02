@@ -65,7 +65,7 @@ export default function ProtectedPhone({
         ...style,
       }}
     >
-      <i className="fa-solid fa-phone" style={{ color: 'var(--color-secondary)', fontSize: '0.85em' }}></i>
+      <i className="fa-solid fa-phone" style={{ color: 'var(--color-primary)', fontSize: '0.85em' }}></i>
       {children || phone}
     </a>
   )

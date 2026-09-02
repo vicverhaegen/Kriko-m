@@ -24,10 +24,10 @@
     --color-primary-dark: #3a0710;
     --color-primary-hover: #650B19;
 
-    /* Beige â€” inschrijven-knop Â· subtitels Â· decoratieve lijn */
-    --color-accent: #EDE8D0;
-    --color-accent-hover: #e0d9b8;
-    --color-accent-light: #f7f4e6;
+    /* Beige — inschrijven-knop · subtitels · decoratieve lijn */
+    --color-accent: #FCF4D7;
+    --color-accent-hover: #F0E5BD;
+    --color-accent-light: #FDF8E7;
 
     /* Secondary = alias van het accent (backwards-compat met bestaande klassen) */
     --color-secondary: var(--color-accent);
@@ -87,11 +87,11 @@
 /* Aangepaste Tekstselectie (Branding) */
 ::selection {
     background-color: #3A0710;
-    color: #FFF8EB;
+    color: #FCF4D7;
 }
 ::-moz-selection {
     background-color: #3A0710;
-    color: #FFF8EB;
+    color: #FCF4D7;
 }
 
 /* Portaal tekstselectie */
@@ -271,7 +271,7 @@ html, body {
     position: relative;
     width: 100%;
     z-index: 100;
-    border-bottom: 4px solid #fcebbe;
+    border-bottom: 4px solid #FCF4D7;
 }
 
 .mainnav-inner {
@@ -322,7 +322,7 @@ html, body {
 }
 
 .nav-links > li > a {
-    color: #fcebbe;
+    color: #FCF4D7;
     text-decoration: none;
     font-family: var(--font-nunito), Arial, sans-serif;
     font-size: 0.88rem;
@@ -383,7 +383,7 @@ html, body {
 
 .dropdown li a {
     display: block;
-    color: #fcebbe;
+    color: #FCF4D7;
     text-decoration: none;
     padding: 11px 18px;
     font-family: var(--font-nunito), Arial, sans-serif;
@@ -404,7 +404,7 @@ html, body {
 
 /* CTA knop (inschrijven) */
 .nav-cta {
-    background-color: #fcebbe;
+    background-color: #FCF4D7;
     color: var(--color-primary) !important;
     text-decoration: none;
     font-family: var(--font-nunito), Arial, sans-serif;
@@ -612,7 +612,7 @@ html, body {
     height: calc(100vh - 58px);
     overflow: hidden;
     margin-bottom: 0;
-    border-bottom: 4px solid #fcebbe;
+    border-bottom: 4px solid #FCF4D7;
 }
 
 .hero-img {
@@ -643,7 +643,7 @@ html, body {
     font-family: var(--font-londrina), var(--font-nunito), Arial, sans-serif;
     font-size: 7.2rem;
     font-weight: 400;
-    color: #fcebbe;
+    color: #FCF4D7;
     letter-spacing: 0.08em;
     text-transform: uppercase;
     line-height: 1;
@@ -654,7 +654,7 @@ html, body {
     font-family: var(--font-nunito), Arial, sans-serif;
     font-size: 1.6rem;
     font-weight: 600;
-    color: #fcebbe;
+    color: #FCF4D7;
     letter-spacing: 0.22em;
     text-transform: uppercase;
     text-shadow: 0 1px 4px rgba(0,0,0,0.7), 0 0 14px rgba(0,0,0,0.45);
@@ -875,7 +875,7 @@ html, body {
 
 .calendar-time {
     font-size: 0.85rem;
-    color: var(--color-secondary);
+    color: var(--color-primary);
     font-weight: 600;
     margin-bottom: 4px;
     display: flex;
@@ -995,7 +995,7 @@ body.portal-theme .tak-hero.primair {
     font-family: var(--font-londrina), var(--font-nunito), Arial, sans-serif;
     font-size: clamp(2.5rem, 8vw, 3.8rem);
     font-weight: 400;
-    color: #fcebbe;
+    color: #FCF4D7;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     text-shadow: 0 2px 8px rgba(0, 0, 0, 0.45);
@@ -2742,7 +2742,7 @@ body.portal-theme .tak-hero.primair {
     margin-bottom: 10px;
 }
 
-.cal-event-meta i { color: var(--color-secondary); margin-right: 2px; }
+.cal-event-meta i { color: var(--color-primary); margin-right: 2px; }
 
 .cal-event-desc {
     font-size: 0.9rem;
@@ -3497,7 +3497,7 @@ body.portal-theme .tak-hero.primair {
 
 .verhuur-hero-title {
     margin: 0;
-    color: #fcebbe;
+    color: #FCF4D7;
     font-family: var(--font-londrina), var(--font-nunito), Arial, sans-serif;
     font-size: 3.8rem;
     font-weight: 400;

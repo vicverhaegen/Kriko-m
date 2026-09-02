@@ -44,7 +44,7 @@ export default function Header() {
         <nav className={`mainnav${menuOpen ? ' nav-open' : ''}`} id="mainnav">
           <div className="mainnav-inner">
             <Link href="/" className="nav-logo" onClick={handleLogoClick}>
-              <Image src="/images/logo-finaal.png" alt="Kriko-M logo" width={140} height={140} priority />
+              <Image src="/images/logo-finaal.png" alt="Kriko-M logo" width={140} height={140} priority unoptimized />
             </Link>
             <ul className="nav-links">
               <li><Link href="/info" className={isActive('/info') ? 'nav-active' : ''}>INFO</Link></li>

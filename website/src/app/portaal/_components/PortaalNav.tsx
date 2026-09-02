@@ -169,7 +169,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
         style={{
           height: 64,
           background: '#FFFFFF',
-          borderBottom: '1px solid #EDE8D0',
+          borderBottom: '1px solid #FCF4D7',
           padding: '0 24px',
           display: 'flex',
           alignItems: 'center',
@@ -190,7 +190,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
                 width: 38,
                 height: 38,
                 borderRadius: 8,
-                border: '1px solid #EDE8D0',
+                border: '1px solid #FCF4D7',
                 background: '#F0ECE4',
                 color: '#650B19',
                 display: 'flex',
@@ -240,7 +240,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
                 borderRadius: 24,
                 background: dropdownOpen ? '#F9F0F2' : '#F0ECE4',
                 color: '#1A1A1A',
-                border: '1px solid #EDE8D0',
+                border: '1px solid #FCF4D7',
                 cursor: 'pointer',
                 fontSize: '0.88rem',
                 fontWeight: 700,
@@ -278,14 +278,14 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
                   background: '#FFFFFF',
                   borderRadius: 14,
                   boxShadow: '0 10px 28px rgba(0,0,0,0.1)',
-                  border: '1px solid #EDE8D0',
+                  border: '1px solid #FCF4D7',
                   overflow: 'hidden',
                   zIndex: 120,
                   animation: 'dropdownFadeIn 0.18s cubic-bezier(0.16, 1, 0.3, 1)',
                 }}
               >
                 {/* Account Info Header */}
-                <div style={{ padding: '14px 16px', background: '#F9F0F2', borderBottom: '1px solid #EDE8D0' }}>
+                <div style={{ padding: '14px 16px', background: '#F9F0F2', borderBottom: '1px solid #FCF4D7' }}>
                   <span style={{ display: 'block', fontSize: '0.68rem', fontWeight: 700, color: '#650B19', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     Ingelogd als
                   </span>
@@ -358,7 +358,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
       {showAccountsModal && (
         <div className="portaal-modal-overlay">
           <div className="portaal-modal-card" style={{ maxWidth: 540 }}>
-            <div className="portaal-modal-header" style={{ borderBottom: '1px solid #EDE8D0' }}>
+            <div className="portaal-modal-header" style={{ borderBottom: '1px solid #FCF4D7' }}>
               <h3 className="portaal-modal-title" style={{ color: '#3a0710', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
                 👥 Accountbeheer — Rollen &amp; Wachtwoorden
               </h3>
@@ -385,7 +385,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
                       style={{
                         padding: '10px 6px',
                         borderRadius: 10,
-                        border: editingRole === 'leiding' ? '2px solid #650B19' : '1px solid #EDE8D0',
+                        border: editingRole === 'leiding' ? '2px solid #650B19' : '1px solid #FCF4D7',
                         background: editingRole === 'leiding' ? '#F9F0F2' : '#FFFFFF',
                         color: editingRole === 'leiding' ? '#650B19' : '#1A1A1A',
                         fontWeight: editingRole === 'leiding' ? 800 : 600,
@@ -402,7 +402,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
                       style={{
                         padding: '10px 6px',
                         borderRadius: 10,
-                        border: editingRole === 'groepsleiding' ? '2px solid #650B19' : '1px solid #EDE8D0',
+                        border: editingRole === 'groepsleiding' ? '2px solid #650B19' : '1px solid #FCF4D7',
                         background: editingRole === 'groepsleiding' ? '#F9F0F2' : '#FFFFFF',
                         color: editingRole === 'groepsleiding' ? '#650B19' : '#1A1A1A',
                         fontWeight: editingRole === 'groepsleiding' ? 800 : 600,
@@ -419,7 +419,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
                       style={{
                         padding: '10px 6px',
                         borderRadius: 10,
-                        border: editingRole === 'webshop' ? '2px solid #650B19' : '1px solid #EDE8D0',
+                        border: editingRole === 'webshop' ? '2px solid #650B19' : '1px solid #FCF4D7',
                         background: editingRole === 'webshop' ? '#F9F0F2' : '#FFFFFF',
                         color: editingRole === 'webshop' ? '#650B19' : '#1A1A1A',
                         fontWeight: editingRole === 'webshop' ? 800 : 600,
@@ -442,7 +442,7 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
                       required
                       placeholder="Bijv. Leiding Kriko-M"
                       disabled={savingAccount}
-                      style={{ borderRadius: 8, borderColor: '#EDE8D0' }}
+                      style={{ borderRadius: 8, borderColor: '#FCF4D7' }}
                     />
                   </div>
 
@@ -455,18 +455,18 @@ export default function PortaalNav({ naam, role, onToggleMobileSidebar }: Props)
                       onChange={(e) => setEditPassword(e.target.value)}
                       placeholder="Nieuw wachtwoord (minstens 6 tekens)"
                       disabled={savingAccount}
-                      style={{ borderRadius: 8, borderColor: '#EDE8D0' }}
+                      style={{ borderRadius: 8, borderColor: '#FCF4D7' }}
                     />
                   </div>
                 </div>
 
-                <div className="portaal-modal-footer" style={{ borderTop: '1px solid #EDE8D0' }}>
+                <div className="portaal-modal-footer" style={{ borderTop: '1px solid #FCF4D7' }}>
                   <button
                     type="button"
                     className="btn btn-outline"
                     onClick={() => setShowAccountsModal(false)}
                     disabled={savingAccount}
-                    style={{ padding: '8px 16px', fontSize: '0.9rem', borderRadius: 8, borderColor: '#EDE8D0', color: '#1A1A1A' }}
+                    style={{ padding: '8px 16px', fontSize: '0.9rem', borderRadius: 8, borderColor: '#FCF4D7', color: '#1A1A1A' }}
                   >
                     Sluiten
                   </button>

@@ -217,7 +217,7 @@ export default function TakPageClient({
             {traditie && (
               <div className="tak-card-block">
                 <h3 style={{ fontSize: '1.6rem', marginBottom: 14, color: 'var(--color-primary-dark)', display: 'flex', alignItems: 'center', gap: 10 }}>
-                  <i className="fa-solid fa-scroll" style={{ color: 'var(--color-secondary)' }}></i>
+                  <i className="fa-solid fa-scroll" style={{ color: 'var(--color-primary)' }}></i>
                   <EditableText
                     blockKey={`takken.${slug}.traditie.wet_title`}
                     page="takken"

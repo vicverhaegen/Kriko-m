@@ -154,7 +154,7 @@ function PortaalContent() {
 
       {/* Logo */}
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 10, textAlign: 'center' }}>
-        <Image src="/images/logo-finaal.png" alt="Kriko-M logo" width={68} height={68} style={{ objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))' }} />
+        <Image src="/images/logo-finaal.png" alt="Kriko-M logo" width={68} height={68} style={{ objectFit: 'contain', filter: 'drop-shadow(0 4px 12px rgba(0,0,0,0.4))' }} unoptimized />
         <div style={{ lineHeight: 1.2 }}>
           <span style={{ display: 'block', fontFamily: 'var(--font-heading, Nunito, sans-serif)', fontWeight: 900, fontSize: '2rem', letterSpacing: '.06em', textTransform: 'uppercase', color: '#fff', textShadow: '0 2px 8px rgba(0,0,0,0.4)' }}>Kriko-M</span>
         </div>

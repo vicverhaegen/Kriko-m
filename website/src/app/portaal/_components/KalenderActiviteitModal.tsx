@@ -175,7 +175,7 @@ export default function KalenderActiviteitModal({
         <div style={{ pointerEvents: 'auto', width: '95%', maxWidth: 720, maxHeight: 'calc(100vh - 90px)', overflowY: 'auto', overflowX: 'hidden', background: '#fff', borderRadius: 20, padding: 32, boxShadow: '0 24px 60px rgba(0,0,0,0.22)', display: 'flex', flexDirection: 'column', gap: 16 }}>
 
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12, borderBottom: '1px solid #EDE8D0' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: 12, borderBottom: '1px solid #FCF4D7' }}>
             <div>
               <h3 style={{ margin: 0, color: '#162544', fontWeight: 900, fontSize: '1.3rem', fontFamily: 'var(--font-heading, Nunito, sans-serif)' }}>
                 {editEvent ? 'Activiteit bewerken' : 'Nieuwe activiteit'}
@@ -196,7 +196,7 @@ export default function KalenderActiviteitModal({
           </div>
 
           {/* Navigation Tabs */}
-          <div style={{ display: 'flex', gap: 8, borderBottom: '2px solid #EDE8D0', paddingBottom: 8 }}>
+          <div style={{ display: 'flex', gap: 8, borderBottom: '2px solid #FCF4D7', paddingBottom: 8 }}>
             <button
               type="button"
               onClick={() => setActiveTab('basis')}
@@ -581,7 +581,7 @@ export default function KalenderActiviteitModal({
             )}
 
             {/* Modal Actions */}
-            <div style={{ display: 'flex', gap: 12, paddingTop: 10, borderTop: '1px solid #EDE8D0' }}>
+            <div style={{ display: 'flex', gap: 12, paddingTop: 10, borderTop: '1px solid #FCF4D7' }}>
               <button type="submit" disabled={loading}
                 style={{ padding: '12px 24px', background: '#243B6B', color: '#fff', border: 'none', borderRadius: 10, fontFamily: 'inherit', fontWeight: 800, cursor: 'pointer', fontSize: '.95rem', flex: 1, boxShadow: '0 4px 12px rgba(36,59,107,0.25)' }}>
                 {loading ? 'Bezig…' : editEvent ? 'Wijzigingen opslaan' : 'Activiteit opslaan'}

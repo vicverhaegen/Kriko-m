@@ -93,7 +93,7 @@ export default function InfoTabbedContent({ email, address: _address }: InfoTabb
                 width: '100%',
               }}
             >
-              <i className={`fa-solid ${tab.icon}`} style={{ color: isActive ? '#ffffff' : 'var(--color-secondary)' }}></i>
+              <i className={`fa-solid ${tab.icon}`} style={{ color: isActive ? '#ffffff' : 'var(--color-primary)' }}></i>
               {tab.label}
             </button>
           )
